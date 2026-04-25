@@ -7,7 +7,8 @@ import LeadCard, { LeadCardSkeleton, type LeadResult } from '@/components/discov
 import toast from 'react-hot-toast';
 import {
   Search, MapPin, Briefcase, Users, Loader2, Compass,
-  ChevronDown, Sparkles, AlertCircle, RefreshCw,
+  ChevronDown, Sparkles, AlertCircle, RefreshCw, X,
+  Building2, DollarSign, ChevronRight,
 } from 'lucide-react';
 
 type Tab = 'jobs' | 'leads';
@@ -21,9 +22,11 @@ export default function DiscoverPage() {
   const [jobLocation, setJobLocation] = useState('');
   const [jobType, setJobType] = useState('all');
   const [datePosted, setDatePosted] = useState('all');
+  const [experience, setExperience] = useState('all');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState('');
+  const [visibleJobCount, setVisibleJobCount] = useState(10);
   const [jobsSearched, setJobsSearched] = useState(false);
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
 
@@ -36,6 +39,12 @@ export default function DiscoverPage() {
   const [leadsError, setLeadsError] = useState('');
   const [leadsSearched, setLeadsSearched] = useState(false);
   const [savedLeadIds, setSavedLeadIds] = useState<Set<string>>(new Set());
+  const [visibleLeadCount, setVisibleLeadCount] = useState(10);
+
+  // Save confirm modal
+  const [confirmModal, setConfirmModal] = useState<{ type: 'job'; data: Job } | { type: 'lead'; data: LeadResult } | null>(null);
+  const [confirmNotes, setConfirmNotes] = useState('');
+  const [confirmSaving, setConfirmSaving] = useState(false);
 
   // Search history
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -55,7 +64,7 @@ export default function DiscoverPage() {
 
   const searchJobs = useCallback(async () => {
     if (!jobQuery.trim()) { toast.error('Enter a search term'); return; }
-    setJobsLoading(true); setJobsError(''); setJobsSearched(true);
+    setJobsLoading(true); setJobsError(''); setJobsSearched(true); setVisibleJobCount(10);
     addToHistory(jobQuery);
     try {
       const res = await fetch('/api/jobs', {
@@ -73,7 +82,7 @@ export default function DiscoverPage() {
 
   const searchLeads = useCallback(async () => {
     if (!leadCompany.trim() && !leadTitle.trim()) { toast.error('Enter a company or title'); return; }
-    setLeadsLoading(true); setLeadsError(''); setLeadsSearched(true);
+    setLeadsLoading(true); setLeadsError(''); setLeadsSearched(true); setVisibleLeadCount(10);
     addToHistory(leadCompany || leadTitle);
     try {
       const res = await fetch('/api/leads/search', {
@@ -90,23 +99,42 @@ export default function DiscoverPage() {
   }, [leadCompany, leadTitle, leadLocation, addToHistory]);
 
   const saveJobToCRM = async (job: Job) => {
-    const salary = job.minSalary || job.maxSalary
-      ? `$${job.minSalary ? Math.round(job.minSalary / 1000) + 'k' : '?'} - $${job.maxSalary ? Math.round(job.maxSalary / 1000) + 'k' : '?'}`
-      : undefined;
-    await addLead({
-      title: job.title, company: job.company,
-      location: [job.city, job.state].filter(Boolean).join(', ') || (job.isRemote ? 'Remote' : ''),
-      salary, source: 'Indeed', status: 'new',
-    });
-    setSavedJobIds((prev) => new Set([...Array.from(prev), job.id]));
+    setConfirmModal({ type: 'job', data: job });
+    setConfirmNotes('');
   };
 
   const saveLeadToCRM = async (lead: LeadResult) => {
-    await addLead({
-      title: lead.position, company: lead.company,
-      email: lead.email, source: 'Hunter', status: 'new',
-    });
-    setSavedLeadIds((prev) => new Set([...Array.from(prev), lead.id]));
+    setConfirmModal({ type: 'lead', data: lead });
+    setConfirmNotes('');
+  };
+
+  const handleConfirmSave = async () => {
+    if (!confirmModal) return;
+    setConfirmSaving(true);
+    try {
+      if (confirmModal.type === 'job') {
+        const job = confirmModal.data;
+        const salary = job.minSalary || job.maxSalary
+          ? `$${job.minSalary ? Math.round(job.minSalary / 1000) + 'k' : '?'} - $${job.maxSalary ? Math.round(job.maxSalary / 1000) + 'k' : '?'}`
+          : undefined;
+        await addLead({
+          title: job.title, company: job.company,
+          location: [job.city, job.state].filter(Boolean).join(', ') || (job.isRemote ? 'Remote' : ''),
+          salary, source: 'Indeed', status: 'new', notes: confirmNotes || undefined,
+        });
+        setSavedJobIds((prev) => new Set([...Array.from(prev), job.id]));
+      } else {
+        const lead = confirmModal.data;
+        await addLead({
+          title: lead.position, company: lead.company,
+          email: lead.email, source: 'Hunter', status: 'new', notes: confirmNotes || undefined,
+        });
+        setSavedLeadIds((prev) => new Set([...Array.from(prev), lead.id]));
+      }
+    } finally {
+      setConfirmSaving(false);
+      setConfirmModal(null);
+    }
   };
 
   const selectClasses = 'w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all appearance-none';
@@ -154,7 +182,7 @@ export default function DiscoverPage() {
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="relative">
                 <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={selectClasses}>
                   <option value="all">All Types</option>
@@ -168,10 +196,18 @@ export default function DiscoverPage() {
               <div className="relative">
                 <select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className={selectClasses}>
                   <option value="all">Any Time</option>
-                  <option value="today">Last 24h</option>
-                  <option value="3days">Last 3 days</option>
-                  <option value="week">Last week</option>
-                  <option value="month">Last month</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
+              <div className="relative">
+                <select value={experience} onChange={(e) => setExperience(e.target.value)} className={selectClasses}>
+                  <option value="all">Any Level</option>
+                  <option value="junior">Junior</option>
+                  <option value="mid">Mid-Level</option>
+                  <option value="senior">Senior</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
@@ -249,14 +285,22 @@ export default function DiscoverPage() {
             </div>
           ) : jobs.length > 0 ? (
             <>
-              <p className="text-sm text-slate-400 mb-3"><span className="font-semibold text-[#1e293b]">{jobs.length}</span> jobs found</p>
+              <p className="text-sm text-slate-400 mb-3">Showing <span className="font-semibold text-[#1e293b]">{Math.min(visibleJobCount, jobs.length)}</span> of <span className="font-semibold text-[#1e293b]">{jobs.length}</span> jobs</p>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {jobs.map((job) => (
+                {jobs.slice(0, visibleJobCount).map((job) => (
                   <div key={job.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <JobCard job={job} onSaveToCRM={saveJobToCRM} isSaved={savedJobIds.has(job.id)} />
                   </div>
                 ))}
               </div>
+              {visibleJobCount < jobs.length && (
+                <div className="flex justify-center mt-6">
+                  <button onClick={() => setVisibleJobCount((p) => p + 10)}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:border-blue-200 transition-all shadow-sm">
+                    <ChevronRight className="w-4 h-4" /> Load More ({jobs.length - visibleJobCount} remaining)
+                  </button>
+                </div>
+              )}
             </>
           ) : jobsSearched ? (
             <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
@@ -304,14 +348,22 @@ export default function DiscoverPage() {
             </div>
           ) : leads.length > 0 ? (
             <>
-              <p className="text-sm text-slate-400 mb-3"><span className="font-semibold text-[#1e293b]">{leads.length}</span> leads found</p>
+              <p className="text-sm text-slate-400 mb-3">Showing <span className="font-semibold text-[#1e293b]">{Math.min(visibleLeadCount, leads.length)}</span> of <span className="font-semibold text-[#1e293b]">{leads.length}</span> leads</p>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {leads.map((lead) => (
+                {leads.slice(0, visibleLeadCount).map((lead) => (
                   <div key={lead.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <LeadCard lead={lead} onAddToCRM={saveLeadToCRM} isSaved={savedLeadIds.has(lead.id)} />
                   </div>
                 ))}
               </div>
+              {visibleLeadCount < leads.length && (
+                <div className="flex justify-center mt-6">
+                  <button onClick={() => setVisibleLeadCount((p) => p + 10)}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:border-blue-200 transition-all shadow-sm">
+                    <ChevronRight className="w-4 h-4" /> Load More ({leads.length - visibleLeadCount} remaining)
+                  </button>
+                </div>
+              )}
             </>
           ) : leadsSearched ? (
             <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
@@ -338,6 +390,80 @@ export default function DiscoverPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Save to CRM Confirm Modal */}
+      {confirmModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setConfirmModal(null)}>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-[#1e293b]">Save to CRM</h3>
+              <button onClick={() => setConfirmModal(null)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                <X className="w-4 h-4 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#1e293b] truncate">
+                    {confirmModal.type === 'job' ? confirmModal.data.title : confirmModal.data.position}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Building2 className="w-3 h-3 text-slate-400" />
+                    <span className="text-xs text-slate-500 truncate">{confirmModal.data.company}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {confirmModal.type === 'job' && confirmModal.data.city && (
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 rounded-lg">
+                    <MapPin className="w-3 h-3 text-slate-400" />
+                    <span className="text-xs text-slate-500 truncate">{confirmModal.data.city}{confirmModal.data.state ? `, ${confirmModal.data.state}` : ''}</span>
+                  </div>
+                )}
+                {confirmModal.type === 'job' && (confirmModal.data.minSalary || confirmModal.data.maxSalary) && (
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 rounded-lg">
+                    <DollarSign className="w-3 h-3 text-slate-400" />
+                    <span className="text-xs text-slate-500">${Math.round((confirmModal.data.minSalary || 0) / 1000)}k - ${Math.round((confirmModal.data.maxSalary || 0) / 1000)}k</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 text-xs">
+                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-semibold border border-blue-100">Source: {confirmModal.type === 'job' ? 'Indeed' : 'Hunter'}</span>
+                <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md font-semibold border border-emerald-100">Status: New</span>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Notes (optional)</label>
+                <textarea
+                  value={confirmNotes}
+                  onChange={(e) => setConfirmNotes(e.target.value)}
+                  placeholder="Add any notes about this lead..."
+                  rows={2}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmModal(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleConfirmSave} disabled={confirmSaving}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                {confirmSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Save to CRM
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

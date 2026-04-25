@@ -9,6 +9,8 @@ import {
   Loader2,
   UserPlus,
   Shield,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export interface LeadResult {
@@ -56,6 +58,7 @@ function getAvatarColor(name: string) {
 
 export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
   const [saving, setSaving] = useState(false);
+  const [emailRevealed, setEmailRevealed] = useState(false);
 
   const fullName = `${lead.firstName} ${lead.lastName}`;
   const initials = `${lead.firstName?.[0] || ''}${lead.lastName?.[0] || ''}`.toUpperCase();
@@ -101,12 +104,19 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
         </div>
       </div>
 
-      {/* Email */}
+      {/* Email with Reveal */}
       <div className="flex items-center gap-2 mt-3 px-3 py-2 bg-slate-50 rounded-lg">
         <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-        <span className="text-xs text-slate-500 font-mono truncate">
-          {maskEmail(lead.email)}
+        <span className="text-xs text-slate-500 font-mono truncate flex-1">
+          {emailRevealed ? lead.email : maskEmail(lead.email)}
         </span>
+        <button
+          onClick={() => setEmailRevealed(!emailRevealed)}
+          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold text-violet-600 bg-violet-50 border border-violet-100 hover:bg-violet-100 transition-colors flex-shrink-0"
+        >
+          {emailRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+          {emailRevealed ? 'Hide' : 'Reveal'}
+        </button>
       </div>
 
       {/* Department badge */}
