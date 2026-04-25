@@ -24,9 +24,12 @@ interface LeadStore {
   setAddLeadModalOpen: (open: boolean) => void;
   fetchLeads: () => Promise<void>;
   fetchActivities: () => Promise<void>;
+  fetchLeadActivities: (leadId: string) => Promise<Activity[]>;
   addLead: (lead: Partial<Lead>) => Promise<void>;
+  updateLead: (id: string, updates: Partial<Lead>) => Promise<void>;
   deleteLead: (id: string) => Promise<void>;
   updateLeadStatus: (id: string, status: LeadStatus) => Promise<void>;
+  addNote: (leadId: string, note: string) => Promise<void>;
   subscribeToChanges: () => () => void;
 }
 
@@ -62,7 +65,6 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
       const inProgress = leads.filter((l) => l.status === 'interview').length;
       const converted = leads.filter((l) => l.status === 'offer').length;
 
-      // Calculate weekly change
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       const recentCount = leads.filter(
@@ -97,6 +99,22 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
     }
   },
 
+  fetchLeadActivities: async (leadId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('lead_id', leadId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as Activity[];
+    } catch (error) {
+      console.error('Error fetching lead activities:', error);
+      return [];
+    }
+  },
+
   addLead: async (lead) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -110,7 +128,6 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
 
       if (error) throw error;
 
-      // Log activity
       await supabase.from('activities').insert({
         user_id: user.id,
         lead_id: data.id,
@@ -128,19 +145,67 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
     }
   },
 
+  updateLead: async (id, updates) => {
+    // Optimistic update
+    const prevLeads = get().leads;
+    set({
+      leads: prevLeads.map((l) => (l.id === id ? { ...l, ...updates } : l)),
+    });
+
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('activities').insert({
+          user_id: user.id,
+          lead_id: id,
+          action: 'lead_updated',
+          description: `Updated lead details`,
+        });
+      }
+
+      toast.success('Lead updated');
+      get().fetchLeads();
+      get().fetchActivities();
+    } catch (error) {
+      // Rollback
+      set({ leads: prevLeads });
+      const message = error instanceof Error ? error.message : 'Failed to update lead';
+      toast.error(message);
+    }
+  },
+
   deleteLead: async (id) => {
+    // Optimistic update
+    const prevLeads = get().leads;
+    set({ leads: prevLeads.filter((l) => l.id !== id) });
+
     try {
       const { error } = await supabase.from('leads').delete().eq('id', id);
       if (error) throw error;
       toast.success('Lead deleted');
       get().fetchLeads();
+      get().fetchActivities();
     } catch (error) {
+      set({ leads: prevLeads });
       const message = error instanceof Error ? error.message : 'Failed to delete lead';
       toast.error(message);
     }
   },
 
   updateLeadStatus: async (id, status) => {
+    // Optimistic update
+    const prevLeads = get().leads;
+    set({
+      leads: prevLeads.map((l) => (l.id === id ? { ...l, status } : l)),
+    });
+
     try {
       const { error } = await supabase
         .from('leads')
@@ -158,11 +223,43 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
         });
       }
 
-      toast.success(`Status updated to ${status}`);
+      toast.success(`Moved to ${status}`);
       get().fetchLeads();
       get().fetchActivities();
     } catch (error) {
+      set({ leads: prevLeads });
       const message = error instanceof Error ? error.message : 'Failed to update status';
+      toast.error(message);
+    }
+  },
+
+  addNote: async (leadId, note) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Update lead notes
+      const lead = get().leads.find((l) => l.id === leadId);
+      const existingNotes = lead?.notes || '';
+      const timestamp = new Date().toISOString();
+      const newNotes = existingNotes
+        ? `${existingNotes}\n---\n[${timestamp}] ${note}`
+        : `[${timestamp}] ${note}`;
+
+      await supabase.from('leads').update({ notes: newNotes }).eq('id', leadId);
+
+      await supabase.from('activities').insert({
+        user_id: user.id,
+        lead_id: leadId,
+        action: 'note_added',
+        description: `Note: ${note.slice(0, 60)}${note.length > 60 ? '...' : ''}`,
+      });
+
+      toast.success('Note added');
+      get().fetchLeads();
+      get().fetchActivities();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add note';
       toast.error(message);
     }
   },
