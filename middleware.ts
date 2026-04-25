@@ -69,12 +69,14 @@ export async function middleware(request: NextRequest) {
   // Protect dashboard routes
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
                      request.nextUrl.pathname.startsWith('/register');
-  const isDashboardRoute = request.nextUrl.pathname === '/' || 
-                           request.nextUrl.pathname.startsWith('/discover') ||
+  const isPublicPage = request.nextUrl.pathname === '/' ||
+                       request.nextUrl.pathname.startsWith('/pricing');
+  const isDashboardRoute = request.nextUrl.pathname.startsWith('/discover') ||
                            request.nextUrl.pathname.startsWith('/crm') ||
                            request.nextUrl.pathname.startsWith('/outreach') ||
                            request.nextUrl.pathname.startsWith('/analytics') ||
-                           request.nextUrl.pathname.startsWith('/settings');
+                           request.nextUrl.pathname.startsWith('/settings') ||
+                           request.nextUrl.pathname.startsWith('/dashboard');
 
   if (!session && isDashboardRoute) {
     const redirectUrl = new URL('/login', request.url);
@@ -82,7 +84,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (session && isAuthPage) {
-    const redirectUrl = new URL('/', request.url);
+    const redirectUrl = new URL('/discover', request.url);
     return NextResponse.redirect(redirectUrl);
   }
 
