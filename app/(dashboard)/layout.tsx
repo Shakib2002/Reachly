@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import AddLeadModal from '@/components/dashboard/AddLeadModal';
+import AddClientModalGlobal from '@/components/dashboard/AddClientModalGlobal';
 
 export default function DashboardLayout({
   children,
@@ -68,6 +69,7 @@ export default function DashboardLayout({
 
       {/* Global modals */}
       <AddLeadModal />
+      <AddClientModalGlobal />
     </div>
   );
 }
