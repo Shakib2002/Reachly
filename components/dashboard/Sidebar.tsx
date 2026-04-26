@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Discover', href: '/discover', icon: Search },
   { name: 'CRM Pipeline', href: '/crm', icon: Kanban },
   { name: 'Outreach', href: '/outreach', icon: Mail },
@@ -44,16 +44,13 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     .toUpperCase()
     .slice(0, 2);
 
-  const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
-    return pathname.startsWith(href);
-  };
+  const isActive = (href: string) => pathname === href || (href !== '/discover' && href !== '/dashboard' && pathname.startsWith(href));
 
   return (
     <div className="flex flex-col h-full">
       {/* Logo Section */}
       <div className={`px-5 pt-6 pb-4 ${collapsed ? 'px-3' : ''}`}>
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30">
             <span className="text-white text-lg font-black">R</span>
           </div>
