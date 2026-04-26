@@ -63,7 +63,14 @@ export default function SettingsPage() {
     setMemberSince(new Date(user.created_at).toLocaleDateString('en',{year:'numeric',month:'long',day:'numeric'}));
     const { data } = await supabase.from('user_settings').select('*').eq('user_id',user.id).single();
     if (data) {
-      setSettings({...DEF,...data, notification_preferences:{...DEF.notification_preferences,...(data.notification_preferences||{})}});
+      setSettings({...DEF,...data, 
+        full_name: data.full_name || '', job_title: data.job_title || '', location: data.location || '',
+        bio: data.bio || '', linkedin_url: data.linkedin_url || '', website_url: data.website_url || '',
+        avatar_url: data.avatar_url || '', rapidapi_key: data.rapidapi_key || '',
+        hunter_api_key: data.hunter_api_key || '', resend_api_key: data.resend_api_key || '',
+        plan: data.plan || 'free',
+        notification_preferences:{...DEF.notification_preferences,...(data.notification_preferences||{})}
+      });
     } else {
       await supabase.from('user_settings').insert({user_id:user.id, full_name:user.user_metadata?.full_name||''});
       setSettings({...DEF, full_name:user.user_metadata?.full_name||''});
@@ -169,7 +176,7 @@ export default function SettingsPage() {
                 <div><label className={label}>Email</label><input value={userEmail} disabled className={inp+' bg-slate-50 cursor-not-allowed'}/></div>
                 <div><label className={label}>Job Title</label><input value={settings.job_title} onChange={e=>setSettings(p=>({...p,job_title:e.target.value}))} className={inp} placeholder="e.g. Software Developer"/></div>
                 <div><label className={label}>Location</label><input value={settings.location} onChange={e=>setSettings(p=>({...p,location:e.target.value}))} className={inp} placeholder="e.g. Dhaka, Bangladesh"/></div>
-                <div className="sm:col-span-2"><label className={label}>Bio <span className="text-slate-400 font-normal">({settings.bio.length}/160)</span></label><textarea value={settings.bio} onChange={e=>setSettings(p=>({...p,bio:e.target.value.slice(0,160)}))} className={inp+' resize-none'} rows={2} placeholder="Short bio..."/></div>
+                <div className="sm:col-span-2"><label className={label}>Bio <span className="text-slate-400 font-normal">({(settings.bio||'').length}/160)</span></label><textarea value={settings.bio||''} onChange={e=>setSettings(p=>({...p,bio:e.target.value.slice(0,160)}))} className={inp+' resize-none'} rows={2} placeholder="Short bio..."/></div>
                 <div><label className={label}>LinkedIn URL</label><input value={settings.linkedin_url} onChange={e=>setSettings(p=>({...p,linkedin_url:e.target.value}))} className={inp} placeholder="https://linkedin.com/in/..."/></div>
                 <div><label className={label}>Website</label><input value={settings.website_url} onChange={e=>setSettings(p=>({...p,website_url:e.target.value}))} className={inp} placeholder="https://..."/></div>
               </div>
