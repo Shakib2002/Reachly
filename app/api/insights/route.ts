@@ -5,24 +5,27 @@ export async function POST(request: NextRequest) {
     const { summary } = await request.json();
     if (!summary) return NextResponse.json({ error: 'Summary required' }, { status: 400 });
 
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
-    if (anthropicKey) {
+    const aiKey = process.env.AI_API_KEY;
+    const aiBase = process.env.AI_BASE_URL || 'https://api.modelrouter.app/v1';
+    const aiModel = process.env.AI_MODEL || 'google/gemini-2.5-flash';
+    if (aiKey) {
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch(`${aiBase}/chat/completions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiKey}` },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', max_tokens: 500,
+            model: aiModel, max_tokens: 500,
             messages: [{ role: 'user', content: `Analyze this job search analytics data and give exactly 5 short, actionable insights. Each insight should be 1 sentence. Return ONLY a JSON array of strings.\n\nData: ${JSON.stringify(summary)}` }],
           }),
         });
         if (res.ok) {
           const data = await res.json();
-          const text = data.content?.[0]?.text || '[]';
-          const insights = JSON.parse(text);
+          const text = data.choices?.[0]?.message?.content || '[]';
+          const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const insights = JSON.parse(cleaned);
           return NextResponse.json({ insights });
         }
-      } catch (e) { console.warn('Claude API failed:', e); }
+      } catch (e) { console.warn('AI API failed:', e); }
     }
 
     // Smart fallback insights based on actual data
@@ -38,7 +41,7 @@ export async function POST(request: NextRequest) {
       const topSource = Object.entries(bySource).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
       if (topSource) insights.push(`"${topSource[0]}" is your best lead source with ${topSource[1]} leads — double down on this channel.`);
       if (emailsSent === 0) insights.push('You haven\'t sent any outreach emails yet — try the Outreach module to increase responses.');
-      else insights.push(`You\'ve sent ${emailsSent} emails — aim for a follow-up within 3 days for best response rates.`);
+      else insights.push(`You've sent ${emailsSent} emails — aim for a follow-up within 3 days for best response rates.`);
       if ((byStatus.applied || 0) > 3 && (byStatus.interview || 0) === 0) insights.push('Multiple applications but no interviews — consider revising your resume or cover letter approach.');
     }
     

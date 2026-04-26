@@ -40,32 +40,30 @@ Use these template variables where appropriate:
 Return ONLY a JSON object with exactly these fields (no markdown, no code blocks):
 {"subject": "email subject line", "body": "email body text with proper paragraphs separated by double newlines"}`;
 
-    // Try Claude API first
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
-    if (anthropicKey) {
+    // Try AI API (ModelRouter / OpenAI-compatible)
+    const aiKey = process.env.AI_API_KEY;
+    const aiBase = process.env.AI_BASE_URL || 'https://api.modelrouter.app/v1';
+    const aiModel = process.env.AI_MODEL || 'google/gemini-2.5-flash';
+    if (aiKey) {
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch(`${aiBase}/chat/completions`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': anthropicKey,
-            'anthropic-version': '2023-06-01',
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${aiKey}` },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
+            model: aiModel, max_tokens: 1000,
             messages: [{ role: 'user', content: prompt }],
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          const text = data.content?.[0]?.text || '';
-          const parsed = JSON.parse(text);
+          const text = data.choices?.[0]?.message?.content || '';
+          const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const parsed = JSON.parse(cleaned);
           return NextResponse.json({ subject: parsed.subject, body: parsed.body });
         }
       } catch (e) {
-        console.warn('Claude API failed, using built-in templates:', e);
+        console.warn('AI API failed, using built-in templates:', e);
       }
     }
 
