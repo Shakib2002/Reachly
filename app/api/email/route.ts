@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const dynamic = 'force-dynamic';
 
 function replaceVariables(text: string, vars: Record<string, string>) {
   let result = text;
@@ -20,18 +20,24 @@ function textToHtml(text: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'Email service not configured' }, { status: 500 });
+    }
+
+    // Lazy init — only created at request time, not build time
+    const resend = new Resend(apiKey);
+
     const { to, subject, body, from_name, variables } = await request.json();
 
     if (!to || !subject || !body) {
       return NextResponse.json({ error: 'Missing required fields: to, subject, body' }, { status: 400 });
     }
 
-    // Replace template variables
     const vars = variables || {};
     const processedSubject = replaceVariables(subject, vars);
     const processedBody = replaceVariables(body, vars);
 
-    // Convert plain text to styled HTML
     const html = `
       <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#ffffff;">
         ${textToHtml(processedBody)}
