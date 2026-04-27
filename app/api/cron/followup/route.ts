@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Move client creation inside the handler so it only runs at request time,
+// not at build time (which causes "supabaseUrl is required" during Vercel build)
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('Supabase env vars not configured');
+  return createClient(url, key);
+}
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   // Verify cron secret
@@ -14,7 +20,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Guard: env vars not set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+  }
+
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Get pending follow-ups that are due
     const { data: dueFollowUps, error } = await supabaseAdmin
       .from('follow_ups')
