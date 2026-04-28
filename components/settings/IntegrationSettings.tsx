@@ -34,14 +34,14 @@ const INTEGRATIONS = [
     hasDefault: true,
   },
   {
-    id: 'hunter_api_key',
-    name: 'Hunter.io',
-    category: 'Lead Search',
-    desc: 'Find professional email addresses for lead discovery',
+    id: 'skrapp_api_key',
+    name: 'Skrapp.io',
+    category: 'Email Finder',
+    desc: 'Find verified professional email addresses from LinkedIn profiles and company domains',
     icon: '📧',
     iconBg: 'bg-emerald-50',
-    hint: 'Using platform default. Add your own key at hunter.io for higher limits.',
-    docsUrl: 'https://hunter.io/api',
+    hint: 'Using platform default. Add your own key at skrapp.io for higher limits.',
+    docsUrl: 'https://skrapp.io/api',
     hasDefault: true,
   },
   {
@@ -55,18 +55,8 @@ const INTEGRATIONS = [
     docsUrl: 'https://resend.com/docs',
     hasDefault: true,
   },
-  {
-    id: 'apollo_api_key',
-    name: 'Apollo.io',
-    category: 'Lead Search',
-    desc: 'B2B lead database with 275M+ contacts',
-    icon: '🚀',
-    iconBg: 'bg-orange-50',
-    hint: 'Using platform default. Add your own key at app.apollo.io for higher limits.',
-    docsUrl: 'https://apolloio.github.io/apollo-api-docs/',
-    hasDefault: true,
-  },
 ];
+
 
 const COMING_SOON = [
   { name: 'LinkedIn Jobs', category: 'Job Search', icon: '💼', desc: 'Direct LinkedIn job search integration' },
