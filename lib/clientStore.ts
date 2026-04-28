@@ -1,11 +1,11 @@
 'use client';
 
 import { create } from 'zustand';
-import { createClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import type { ClientLead, ClientLeadStatus } from '@/types';
 import toast from 'react-hot-toast';
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 interface ClientStore {
   clients: ClientLead[];

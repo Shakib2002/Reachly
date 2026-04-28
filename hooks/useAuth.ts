@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);

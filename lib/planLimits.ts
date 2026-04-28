@@ -1,20 +1,19 @@
+// Re-export constants from the shared constants file
+export { PLAN_LIMITS } from '@/lib/planLimitsConstants';
+
 import { createClient } from '@/lib/supabase';
 
-export const PLAN_LIMITS = {
-  free:  { leads: 50, emails: 100, jobSearches: 20, aiGeneration: false, analytics: false, sequences: false },
-  pro:   { leads: Infinity, emails: 2000, jobSearches: Infinity, aiGeneration: true, analytics: true, sequences: true },
-  team:  { leads: Infinity, emails: 10000, jobSearches: Infinity, aiGeneration: true, analytics: true, sequences: true, teamMembers: 5 },
-} as const;
-
 type Feature = 'leads' | 'emails' | 'jobSearches' | 'aiGeneration' | 'analytics' | 'sequences';
+
+import { PLAN_LIMITS as PL } from '@/lib/planLimitsConstants';
 
 export async function checkLimit(userId: string, feature: Feature): Promise<{ allowed: boolean; current: number; limit: number }> {
   const supabase = createClient();
   const month = new Date().toISOString().slice(0, 7);
 
   const { data: settings } = await supabase.from('user_settings').select('plan').eq('user_id', userId).single();
-  const plan = (settings?.plan || 'free') as keyof typeof PLAN_LIMITS;
-  const limits = PLAN_LIMITS[plan];
+  const plan = (settings?.plan || 'free') as keyof typeof PL;
+  const limits = PL[plan];
   const limit = limits[feature as keyof typeof limits];
 
   if (typeof limit === 'boolean') return { allowed: limit, current: 0, limit: limit ? 1 : 0 };

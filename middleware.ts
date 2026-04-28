@@ -69,8 +69,6 @@ export async function middleware(request: NextRequest) {
   // Protect dashboard routes
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
                      request.nextUrl.pathname.startsWith('/register');
-  const isPublicPage = request.nextUrl.pathname === '/' ||
-                       request.nextUrl.pathname.startsWith('/pricing');
   const isDashboardRoute = request.nextUrl.pathname.startsWith('/discover') ||
                            request.nextUrl.pathname.startsWith('/crm') ||
                            request.nextUrl.pathname.startsWith('/outreach') ||

@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import type { FollowUp } from '@/types';
 import toast from 'react-hot-toast';
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 export function useFollowUps() {
   const [loading, setLoading] = useState(false);

@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import { useLeadStore } from '@/lib/store';
 import TemplateEditor from '@/components/outreach/TemplateEditor';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ import type { Lead } from '@/types';
 interface Template { id: string; name: string; subject: string; body: string; created_at: string; usage_count?: number; }
 interface SentEmail { id: string; to_email: string; to_name: string; company: string; subject: string; template_name: string; sent_at: string; status: string; }
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 export default function OutreachPage() {
   const { leads, fetchLeads } = useLeadStore();

@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
+
 export async function POST() {
   try {
     const supabase = createClient();

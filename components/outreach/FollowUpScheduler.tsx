@@ -1,12 +1,12 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { X, Loader2, Calendar, Check, Bell } from 'lucide-react';
 import { useFollowUps } from '@/hooks/useFollowUps';
-import { createClient } from '@/lib/supabase';
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import type { Template } from '@/types';
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 interface Props {
   leadId: string;
