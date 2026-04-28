@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff, Loader2, Check, Plug, Zap } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Check, Plug, Zap, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 
@@ -29,9 +29,9 @@ const INTEGRATIONS = [
     desc: 'Search millions of jobs from Indeed, LinkedIn and more',
     icon: '🔍',
     iconBg: 'bg-blue-50',
-    hint: 'Get your RapidAPI key from rapidapi.com/JSearch',
+    hint: 'Using platform default. Optionally add your own RapidAPI key for higher limits.',
     docsUrl: 'https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch',
-    testEndpoint: '/api/jobs?query=test&page=1',
+    hasDefault: true,
   },
   {
     id: 'hunter_api_key',
@@ -40,9 +40,9 @@ const INTEGRATIONS = [
     desc: 'Find professional email addresses for lead discovery',
     icon: '📧',
     iconBg: 'bg-emerald-50',
-    hint: 'Get your free API key at hunter.io',
+    hint: 'Using platform default. Add your own key at hunter.io for higher limits.',
     docsUrl: 'https://hunter.io/api',
-    testEndpoint: null,
+    hasDefault: true,
   },
   {
     id: 'resend_api_key',
@@ -51,9 +51,9 @@ const INTEGRATIONS = [
     desc: 'Send transactional emails for outreach campaigns',
     icon: '✉️',
     iconBg: 'bg-violet-50',
-    hint: 'Get your API key at resend.com',
+    hint: 'Using platform default. Add your own key at resend.com to send from your domain.',
     docsUrl: 'https://resend.com/docs',
-    testEndpoint: null,
+    hasDefault: true,
   },
   {
     id: 'apollo_api_key',
@@ -62,9 +62,9 @@ const INTEGRATIONS = [
     desc: 'B2B lead database with 275M+ contacts',
     icon: '🚀',
     iconBg: 'bg-orange-50',
-    hint: 'Get your API key from app.apollo.io → Settings → Integrations',
+    hint: 'Using platform default. Add your own key at app.apollo.io for higher limits.',
     docsUrl: 'https://apolloio.github.io/apollo-api-docs/',
-    testEndpoint: null,
+    hasDefault: true,
   },
 ];
 
@@ -85,15 +85,16 @@ function IntegrationCard({ intg, value, onSaved }: {
   const [val, setVal] = useState(value);
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const connected = !!value;
+  const [expanded, setExpanded] = useState(false);
+  // Always "connected" since we have platform defaults
+  const hasCustomKey = !!value;
 
   const save = async () => {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { error } = await supabase.from('user_settings').update({
-        [intg.id]: val, updated_at: new Date().toISOString(),
+        [intg.id]: val || null, updated_at: new Date().toISOString(),
       }).eq('user_id', user.id);
       if (!error) { toast.success(`${intg.name} key saved`); onSaved(intg.id, val); }
       else toast.error('Failed to save');
@@ -101,23 +102,14 @@ function IntegrationCard({ intg, value, onSaved }: {
     setSaving(false);
   };
 
-  const disconnect = async () => {
+  const resetToDefault = async () => {
     setVal('');
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from('user_settings').update({ [intg.id]: null, updated_at: new Date().toISOString() }).eq('user_id', user.id);
-      toast.success(`${intg.name} disconnected`);
+      toast.success(`${intg.name} reset to platform default`);
       onSaved(intg.id, '');
     }
-  };
-
-  const test = async () => {
-    if (!val) { toast.error('Enter an API key first'); return; }
-    setTesting(true);
-    // Optimistic test - just verifies key is non-empty and saved
-    await new Promise(r => setTimeout(r, 1200));
-    toast.success(`${intg.name} — key format looks valid. Save to activate.`);
-    setTesting(false);
   };
 
   return (
@@ -132,40 +124,60 @@ function IntegrationCard({ intg, value, onSaved }: {
             <p className="text-[10px] text-slate-400">{intg.category}</p>
           </div>
         </div>
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${connected ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-200'}`}>
-          {connected && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />}
-          {connected ? 'Connected' : 'Not Connected'}
+        {/* Always show as active since platform provides default */}
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 bg-emerald-50 text-emerald-600 border border-emerald-100">
+          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+          {hasCustomKey ? 'Custom Key' : 'Platform Default'}
         </span>
       </div>
+
       <p className="text-xs text-slate-500 mb-3">{intg.desc}</p>
-      <div className="flex gap-2 mb-2">
-        <div className="relative flex-1">
-          <input
-            type={show ? 'text' : 'password'}
-            value={val}
-            onChange={e => setVal(e.target.value)}
-            className={inp + ' pr-10 text-xs font-mono'}
-            placeholder="Enter API key..."
-          />
-          <button onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-            {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          </button>
+
+      {/* Info banner */}
+      <div className="flex items-start gap-2 bg-blue-50 rounded-xl px-3 py-2 mb-3">
+        <Info className="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5" />
+        <p className="text-[11px] text-blue-600">{intg.hint}</p>
+      </div>
+
+      {/* Optional override toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors mb-2 flex items-center gap-1"
+      >
+        <Zap className="w-3 h-3" />
+        {expanded ? 'Hide' : 'Use your own API key (optional)'}
+      </button>
+
+      {expanded && (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type={show ? 'text' : 'password'}
+                value={val}
+                onChange={e => setVal(e.target.value)}
+                className={inp + ' pr-10 text-xs font-mono'}
+                placeholder="Enter your own API key (optional)..."
+              />
+              <button onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+            <button onClick={save} disabled={saving} className="px-3 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 disabled:opacity-40 flex-shrink-0 flex items-center gap-1">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              Save
+            </button>
+          </div>
+          {hasCustomKey && (
+            <button onClick={resetToDefault} className="text-[10px] text-red-400 hover:text-red-600 transition-colors">
+              Reset to platform default
+            </button>
+          )}
+          <a href={intg.docsUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-400 hover:text-blue-600 transition-colors block">
+            Get API key →
+          </a>
         </div>
-        <button onClick={test} disabled={testing || !val} className="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 flex-shrink-0 flex items-center gap-1">
-          {testing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-          Test
-        </button>
-        <button onClick={save} disabled={saving || !val} className="px-3 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 disabled:opacity-40 flex-shrink-0 flex items-center gap-1">
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-          Save
-        </button>
-      </div>
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] text-slate-400">{intg.hint}</p>
-        {connected && (
-          <button onClick={disconnect} className="text-[10px] text-red-400 hover:text-red-600 transition-colors">Disconnect</button>
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -175,6 +187,17 @@ export default function IntegrationSettings({ keys, onSaved }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Platform default notice */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4 flex items-start gap-3">
+        <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+          <Plug className="w-4 h-4 text-emerald-600" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-emerald-800">All integrations are pre-configured</p>
+          <p className="text-xs text-emerald-600 mt-0.5">All features work out of the box using platform defaults. You can optionally add your own API keys for higher rate limits.</p>
+        </div>
+      </div>
+
       {categories.map(cat => {
         const catIntgs = INTEGRATIONS.filter(i => i.category === cat);
         return (

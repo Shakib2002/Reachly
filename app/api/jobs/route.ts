@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase';
+
+export const dynamic = 'force-dynamic';
 
 interface JSearchJob {
   job_id: string;
@@ -27,7 +30,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.RAPIDAPI_KEY;
+    // Try user's custom key first, fall back to platform key
+    let apiKey = process.env.RAPIDAPI_KEY;
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: settings } = await supabase
+          .from('user_settings')
+          .select('rapidapi_key')
+          .eq('user_id', user.id)
+          .single();
+        if (settings?.rapidapi_key) apiKey = settings.rapidapi_key;
+      }
+    } catch { /* use platform key */ }
 
     // Try real API first
     if (apiKey) {
