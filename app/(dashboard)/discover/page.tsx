@@ -4,14 +4,15 @@ import { useState, useCallback, useEffect } from 'react';
 import { useLeadStore } from '@/lib/store';
 import JobCard, { JobCardSkeleton, type Job } from '@/components/discover/JobCard';
 import LeadCard, { LeadCardSkeleton, type LeadResult } from '@/components/discover/LeadCard';
+import MapSearch from '@/components/discover/MapSearch';
 import toast from 'react-hot-toast';
 import {
   Search, MapPin, Briefcase, Users, Loader2, Compass,
   ChevronDown, Sparkles, AlertCircle, RefreshCw, X,
-  Building2, DollarSign, ChevronRight,
+  Building2, DollarSign, ChevronRight, Map,
 } from 'lucide-react';
 
-type Tab = 'jobs' | 'leads';
+type Tab = 'jobs' | 'leads' | 'map';
 
 export default function DiscoverPage() {
   const { addLead } = useLeadStore();
@@ -160,6 +161,10 @@ export default function DiscoverPage() {
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'leads' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
           <Users className="w-4 h-4" /> Lead Search
         </button>
+        <button onClick={() => setTab('map')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'map' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
+          <Map className="w-4 h-4" /> Map Search
+        </button>
       </div>
 
       {/* Search Section */}
@@ -263,6 +268,9 @@ export default function DiscoverPage() {
           </div>
         )}
       </div>
+
+      {/* Map Search Tab */}
+      {tab === 'map' && <MapSearch />}
 
       {/* Results */}
       {tab === 'jobs' ? (
