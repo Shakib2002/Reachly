@@ -351,7 +351,7 @@ export default function MapSearch() {
             <div>
               <p className="text-sm font-semibold text-slate-700">
                 <span className="text-blue-600">{displayBiz.length}</span> qualified leads
-                <span className="text-slate-400 font-normal"> from "{searchQuery}"</span>
+                <span className="text-slate-400 font-normal"> from &quot;{searchQuery}&quot;</span>
               </p>
               <p className="text-xs text-slate-400 mt-0.5">Sorted by Lead Score · Highest first</p>
             </div>
