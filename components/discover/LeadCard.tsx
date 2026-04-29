@@ -8,34 +8,35 @@ import {
   CheckCircle,
   Loader2,
   UserPlus,
-  Shield,
-  Eye,
-  EyeOff,
+  MapPin,
+  Briefcase,
 } from 'lucide-react';
 
 export interface LeadResult {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
   position: string;
   company: string;
   confidence: number;
   linkedin: string | null;
   department: string;
+  logo?: string | null;
+  location?: string;
+  domain?: string;
+  jobPosting?: {
+    title: string;
+    applyLink: string;
+    postedAt: string;
+    type: string;
+  } | null;
 }
 
 interface LeadCardProps {
   lead: LeadResult;
   onAddToCRM: (lead: LeadResult) => Promise<void>;
   isSaved: boolean;
-}
-
-function maskEmail(email: string) {
-  const [local, domain] = email.split('@');
-  if (!local || !domain) return email;
-  const visible = local.slice(0, 2);
-  return `${visible}***@${domain}`;
 }
 
 function getAvatarColor(name: string) {
@@ -56,9 +57,14 @@ function getAvatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length];
 }
 
+function formatDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+}
+
 export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
   const [saving, setSaving] = useState(false);
-  const [emailRevealed, setEmailRevealed] = useState(false);
 
   const fullName = `${lead.firstName} ${lead.lastName}`;
   const initials = `${lead.firstName?.[0] || ''}${lead.lastName?.[0] || ''}`.toUpperCase();
@@ -72,61 +78,81 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 p-5 hover:shadow-md hover:border-blue-200 transition-all duration-200 group">
+      {/* Header */}
       <div className="flex items-start gap-3.5">
-        {/* Avatar */}
-        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm`}>
-          {initials}
-        </div>
+        {/* Logo or Avatar */}
+        {lead.logo ? (
+          <img
+            src={lead.logo}
+            alt={lead.company}
+            className="w-11 h-11 rounded-xl object-contain border border-slate-100 bg-white p-1 flex-shrink-0"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm`}>
+            {initials}
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-[#1e293b] truncate group-hover:text-blue-600 transition-colors">
             {fullName}
           </h3>
-          <p className="text-xs text-slate-500 truncate mt-0.5">
-            {lead.position}
-          </p>
+          <p className="text-xs text-slate-500 truncate mt-0.5">{lead.position}</p>
           <div className="flex items-center gap-1.5 mt-1">
             <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
             <span className="text-xs text-slate-400 truncate">{lead.company}</span>
           </div>
+          {lead.location && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+              <span className="text-xs text-slate-400 truncate">{lead.location}</span>
+            </div>
+          )}
         </div>
 
-        {/* Confidence */}
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border ${
-          lead.confidence >= 80
-            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-            : lead.confidence >= 50
-            ? 'bg-amber-50 text-amber-600 border-amber-100'
-            : 'bg-slate-50 text-slate-500 border-slate-200'
-        }`}>
-          <Shield className="w-3 h-3" />
-          {lead.confidence}%
-        </div>
-      </div>
-
-      {/* Email with Reveal */}
-      <div className="flex items-center gap-2 mt-3 px-3 py-2 bg-slate-50 rounded-lg">
-        <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-        <span className="text-xs text-slate-500 font-mono truncate flex-1">
-          {emailRevealed ? lead.email : maskEmail(lead.email)}
-        </span>
-        <button
-          onClick={() => setEmailRevealed(!emailRevealed)}
-          className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold text-violet-600 bg-violet-50 border border-violet-100 hover:bg-violet-100 transition-colors flex-shrink-0"
-        >
-          {emailRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-          {emailRevealed ? 'Hide' : 'Reveal'}
-        </button>
-      </div>
-
-      {/* Department badge */}
-      {lead.department && (
-        <div className="mt-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
+        {/* Department badge */}
+        {lead.department && (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">
             {lead.department}
           </span>
+        )}
+      </div>
+
+      {/* Job Posting info */}
+      {lead.jobPosting && (
+        <div className="mt-3 px-3 py-2 bg-slate-50 rounded-lg flex items-start gap-2">
+          <Briefcase className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-slate-600 font-medium truncate">{lead.jobPosting.title}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              {lead.jobPosting.type?.replace('_', ' ')} · Posted {formatDate(lead.jobPosting.postedAt)}
+            </p>
+          </div>
+          <a
+            href={lead.jobPosting.applyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold flex items-center gap-0.5 flex-shrink-0"
+          >
+            View <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       )}
+
+      {/* Email row */}
+      <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-slate-50 rounded-lg">
+        <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+        {lead.email ? (
+          <span className="text-xs text-slate-600 font-mono truncate flex-1">{lead.email}</span>
+        ) : lead.domain ? (
+          <span className="text-xs text-slate-400 truncate flex-1">
+            Find via <span className="text-blue-500 font-medium">{lead.domain}</span>
+          </span>
+        ) : (
+          <span className="text-xs text-slate-400 italic">Email not available</span>
+        )}
+      </div>
 
       {/* Actions */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
@@ -144,20 +170,17 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
             disabled={saving}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-50"
           >
-            {saving ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <UserPlus className="w-3.5 h-3.5" />
-            )}
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
             Add to CRM
           </button>
         )}
-        {lead.linkedin && (
+        {lead.jobPosting?.applyLink && (
           <a
-            href={lead.linkedin}
+            href={lead.jobPosting.applyLink}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-blue-500 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+            title="View Job Posting"
           >
             <ExternalLink className="w-4 h-4" />
           </a>
@@ -178,9 +201,10 @@ export function LeadCardSkeleton() {
           <div className="h-3 bg-slate-100 rounded w-1/2 mb-1" />
           <div className="h-3 bg-slate-100 rounded w-1/3" />
         </div>
-        <div className="w-12 h-6 bg-slate-100 rounded-lg" />
+        <div className="w-16 h-5 bg-slate-100 rounded-md" />
       </div>
-      <div className="h-8 bg-slate-100 rounded-lg mt-3" />
+      <div className="h-12 bg-slate-100 rounded-lg mt-3" />
+      <div className="h-8 bg-slate-100 rounded-lg mt-2" />
       <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
         <div className="flex-1 h-8 bg-slate-100 rounded-lg" />
       </div>
