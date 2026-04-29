@@ -68,9 +68,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform job postings into lead cards
-    // Group by company to avoid duplicates and extract hiring contact info
-    const companyMap = new Map<string, typeof leads[0]>();
-
     const leads = jobs.map((job, index) => {
       const domain = extractDomain(job.employer_website || job.employer_name);
       const deptFromTitle = guessDepartment(job.job_title);
