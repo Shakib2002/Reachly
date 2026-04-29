@@ -2,12 +2,12 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useLeadStore } from '@/lib/store';
-import MapCard, { MapCardSkeleton, type MapBusiness } from './MapCard';
+import MapCard, { type MapBusiness } from './MapCard';
 import toast from 'react-hot-toast';
 import {
   Search, MapPin, Loader2, AlertCircle, RefreshCw,
   Download, SlidersHorizontal, Sparkles, Target,
-  ChevronDown, X,
+  ChevronDown,
 } from 'lucide-react';
 
 const NICHES = [
@@ -227,7 +227,7 @@ export default function MapSearch() {
           </div>
           {searchQuery && (
             <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-              <Search className="w-3 h-3" /> Will search: <span className="font-semibold text-slate-600">"{searchQuery}"</span>
+              <Search className="w-3 h-3" /> Will search: <span className="font-semibold text-slate-600">&quot;{searchQuery}&quot;</span>
             </p>
           )}
         </div>
@@ -404,7 +404,7 @@ export default function MapSearch() {
           </div>
           <h3 className="text-lg font-bold text-slate-700">Find High-Converting Local Leads</h3>
           <p className="text-sm text-slate-400 mt-1 max-w-sm">
-            Select a niche + location above. Our AI filters only businesses that <em>need your services</em>.
+            Select a niche + location above. Our AI filters only businesses that need your services.
           </p>
           <div className="grid grid-cols-3 gap-3 mt-5 text-xs text-slate-500 max-w-xs">
             <div className="p-2 bg-slate-50 rounded-lg">⭐ 3.5–4.3<br/>Rating Sweet Spot</div>

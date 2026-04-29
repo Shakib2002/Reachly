@@ -33,7 +33,7 @@ interface FilterParams {
   painKeywords?: string[];
 }
 
-function calcLeadScore(biz: ApifyBusiness, filters: FilterParams): number {
+function calcLeadScore(biz: ApifyBusiness, _filters: FilterParams): number {
   let score = 40; // base
 
   // Rating sweet spot 3.8–4.2 → max points
