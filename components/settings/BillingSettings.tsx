@@ -49,9 +49,16 @@ export default function BillingSettings({ plan }: Props) {
 
   useEffect(() => {
     const fetchUsage = async () => {
-      const res = await globalThis.fetch('/api/usage');
-      if (res.ok) setUsage(await res.json());
-      setLoadingUsage(false);
+      try {
+        const res = await globalThis.fetch('/api/usage');
+        if (!res.ok) throw new Error('Failed to fetch usage');
+        setUsage(await res.json());
+      } catch (e) {
+        console.error('Error fetching usage:', e);
+        toast.error('Failed to load usage data');
+      } finally {
+        setLoadingUsage(false);
+      }
     };
     fetchUsage();
   }, []);
@@ -115,7 +122,7 @@ export default function BillingSettings({ plan }: Props) {
             <UsageBar label="Leads" used={usage?.leads_count || 0} max={typeof limits.leads === 'number' ? limits.leads : Infinity} />
             <UsageBar label="Emails Sent" used={usage?.emails_count || 0} max={typeof limits.emails === 'number' ? limits.emails : Infinity} />
             <UsageBar label="Job Searches" used={usage?.job_searches_count || 0} max={typeof limits.jobSearches === 'number' ? limits.jobSearches : Infinity} />
-            <UsageBar label="AI Generations" used={usage?.ai_generations_count || 0} max={limits.aiGeneration ? 500 : 0} />
+            <UsageBar label="AI Generations" used={usage?.ai_generations_count || 0} max={limits.aiGeneration ? Infinity : 0} />
           </div>
         )}
       </div>

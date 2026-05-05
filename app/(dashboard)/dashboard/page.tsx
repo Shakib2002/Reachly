@@ -11,6 +11,7 @@ import {
   Clock,
   CheckCircle,
   ArrowUpRight,
+  ArrowDownRight,
   Plus,
   Search,
   Mail,
@@ -246,10 +247,24 @@ export default function DashboardPage() {
                   >
                     <stat.icon className={`w-5 h-5 ${stat.textColor}`} />
                   </div>
-                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-0.5 border border-emerald-100">
-                    <ArrowUpRight className="w-3 h-3" />
-                    {stat.change}
-                  </span>
+                  {(() => {
+                    const _isPercent = stat.change.includes('%');
+                    const numVal = parseFloat(stat.change.replace(/[^\d.-]/g, ''));
+                    const isPositive = numVal > 0;
+                    const isZero = numVal === 0;
+                    const Arrow = isPositive ? ArrowUpRight : ArrowDownRight;
+                    const badgeColor = isZero
+                      ? 'text-slate-500 bg-slate-50 border-slate-200'
+                      : isPositive
+                        ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
+                        : 'text-red-500 bg-red-50 border-red-100';
+                    return (
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-lg flex items-center gap-0.5 border ${badgeColor}`}>
+                        {!isZero && <Arrow className="w-3 h-3" />}
+                        {stat.change}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <p className="text-2xl font-bold text-[#1e293b]">{stat.value}</p>
                 <p className="text-sm text-slate-500 mt-0.5">{stat.title}</p>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { Eye, EyeOff, Shield, Loader2, Check, X } from 'lucide-react';
@@ -78,7 +78,7 @@ export default function AccountSettings({ userEmail, memberSince, plan }: Props)
             <label className={lbl}>Current Password</label>
             <div className="relative">
               <input type={showCur ? 'text' : 'password'} value={curPwd} onChange={e => setCurPwd(e.target.value)} className={inp + ' pr-10'} placeholder="••••••••" />
-              <button onClick={() => setShowCur(!showCur)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowCur(!showCur)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={showCur ? 'Hide current password' : 'Show current password'}>
                 {showCur ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -89,7 +89,7 @@ export default function AccountSettings({ userEmail, memberSince, plan }: Props)
             <label className={lbl}>New Password</label>
             <div className="relative">
               <input type={showNew ? 'text' : 'password'} value={newPwd} onChange={e => setNewPwd(e.target.value)} className={inp + ' pr-10'} placeholder="Min. 8 characters" />
-              <button onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={showNew ? 'Hide new password' : 'Show new password'}>
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -120,7 +120,7 @@ export default function AccountSettings({ userEmail, memberSince, plan }: Props)
             <label className={lbl}>Confirm Password</label>
             <div className="relative">
               <input type={showConf ? 'text' : 'password'} value={confPwd} onChange={e => setConfPwd(e.target.value)} className={inp + ' pr-10'} placeholder="••••••••" />
-              <button onClick={() => setShowConf(!showConf)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <button type="button" onClick={() => setShowConf(!showConf)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={showConf ? 'Hide confirm password' : 'Show confirm password'}>
                 {showConf ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>

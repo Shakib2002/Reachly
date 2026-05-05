@@ -2,7 +2,7 @@
   "name": "Reachly",
   "short_name": "Reachly",
   "description": "Find. Track. Close. All-in-one platform for job seekers and freelancers.",
-  "start_url": "/discover",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#3b82f6",

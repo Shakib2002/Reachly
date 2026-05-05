@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { User, Shield, Bell, Plug, CreditCard, AlertTriangle, Loader2 } from 'lucide-react';
+import { User, Shield, Bell, Plug, CreditCard, AlertTriangle, Loader2, Users, Building2 } from 'lucide-react';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import ProfileSettings from '@/components/settings/ProfileSettings';
 import AccountSettings from '@/components/settings/AccountSettings';
@@ -9,10 +9,12 @@ import NotificationSettings from '@/components/settings/NotificationSettings';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
 import BillingSettings from '@/components/settings/BillingSettings';
 import DangerZone from '@/components/settings/DangerZone';
+import TeamSettings from '@/components/settings/TeamSettings';
+import WhiteLabelSettings from '@/components/settings/WhiteLabelSettings';
 
 const supabase = createBrowserSupabaseClient();
 
-type Section = 'profile' | 'account' | 'notifications' | 'integrations' | 'billing' | 'danger';
+type Section = 'profile' | 'account' | 'notifications' | 'integrations' | 'billing' | 'team' | 'whitelabel' | 'danger';
 
 const NAV: { id: Section; label: string; icon: typeof User; danger?: boolean }[] = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -20,6 +22,8 @@ const NAV: { id: Section; label: string; icon: typeof User; danger?: boolean }[]
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'integrations', label: 'Integrations', icon: Plug },
   { id: 'billing', label: 'Billing & Plan', icon: CreditCard },
+  { id: 'team', label: 'Team', icon: Users },
+  { id: 'whitelabel', label: 'White-Label', icon: Building2 },
   { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, danger: true },
 ];
 
@@ -193,6 +197,14 @@ export default function SettingsPage() {
 
           {sec === 'billing' && (
             <BillingSettings plan={settings.plan} />
+          )}
+
+          {sec === 'team' && (
+            <TeamSettings />
+          )}
+
+          {sec === 'whitelabel' && (
+            <WhiteLabelSettings />
           )}
 
           {sec === 'danger' && (

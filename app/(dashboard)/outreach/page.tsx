@@ -1,29 +1,40 @@
-﻿'use client';
+'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
 import { useLeadStore } from '@/lib/store';
 import TemplateEditor from '@/components/outreach/TemplateEditor';
+import ABTestEditor from '@/components/outreach/ABTestEditor';
+import SequenceBuilder from '@/components/outreach/SequenceBuilder';
+import UnifiedInbox from '@/components/outreach/UnifiedInbox';
+import DeliverabilityDashboard from '@/components/outreach/DeliverabilityDashboard';
+import EmailWarmup from '@/components/outreach/EmailWarmup';
+import LinkedInAutomation from '@/components/outreach/LinkedInAutomation';
 import toast from 'react-hot-toast';
 import {
   Plus, Send, FileText, Mail, Loader2, Trash2, Pencil, Clock,
   CheckCircle2, XCircle, Users, Search, ChevronDown, Sparkles, X,
+  Eye, MousePointerClick, ShieldCheck, ShieldAlert, ShieldQuestion, Beaker, Zap,
+  Inbox, Flame, Activity, Link as LinkIcon,
 } from 'lucide-react';
 import type { Lead } from '@/types';
 
 interface Template { id: string; name: string; subject: string; body: string; created_at: string; usage_count?: number; }
-interface SentEmail { id: string; to_email: string; to_name: string; company: string; subject: string; template_name: string; sent_at: string; status: string; }
+interface SentEmail { id: string; to_email: string; to_name: string; company: string; subject: string; template_name: string; sent_at: string; status: string; tracking_id?: string; open_count?: number; click_count?: number; variant_id?: string; }
 
 const supabase = createBrowserSupabaseClient();
 
 export default function OutreachPage() {
   const { leads, fetchLeads } = useLeadStore();
-  const [tab, setTab] = useState<'templates' | 'compose' | 'campaigns'>('templates');
+  const [tab, setTab] = useState<'templates' | 'compose' | 'campaigns' | 'sequences' | 'abtests' | 'inbox' | 'deliverability' | 'warmup' | 'linkedin'>('templates');
   const [templates, setTemplates] = useState<Template[]>([]);
   const [sentEmails, setSentEmails] = useState<SentEmail[]>([]);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [abTestOpen, setAbTestOpen] = useState(false);
+  const [sequenceOpen, setSequenceOpen] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid' | 'risky' | 'unknown'>('idle');
 
   // Compose state
   const [toEmail, setToEmail] = useState('');
@@ -37,18 +48,42 @@ export default function OutreachPage() {
   const [showLeadDropdown, setShowLeadDropdown] = useState(false);
 
   const fetchTemplates = useCallback(async () => {
-    const { data } = await supabase.from('templates').select('*').order('created_at', { ascending: false });
-    setTemplates((data || []) as Template[]);
+    try {
+      const { data, error } = await supabase.from('templates').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      setTemplates((data || []) as Template[]);
+    } catch (e) {
+      console.error('Error fetching templates:', e);
+      toast.error('Failed to load templates');
+    }
   }, []);
 
   const fetchSentEmails = useCallback(async () => {
-    const { data } = await supabase.from('emails_sent').select('*').order('sent_at', { ascending: false }).limit(50);
-    setSentEmails((data || []) as SentEmail[]);
+    try {
+      const { data, error } = await supabase.from('emails_sent').select('*').order('sent_at', { ascending: false }).limit(50);
+      if (error) throw error;
+      setSentEmails((data || []) as SentEmail[]);
+    } catch (e) {
+      console.error('Error fetching sent emails:', e);
+    }
   }, []);
+
+  const leadDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([fetchTemplates(), fetchSentEmails(), fetchLeads()]).finally(() => setLoading(false));
   }, [fetchTemplates, fetchSentEmails, fetchLeads]);
+
+  // Close lead dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (leadDropdownRef.current && !leadDropdownRef.current.contains(e.target as Node)) {
+        setShowLeadDropdown(false);
+      }
+    };
+    if (showLeadDropdown) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showLeadDropdown]);
 
   const handleSaveTemplate = async (t: { name: string; subject: string; body: string }) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -83,10 +118,27 @@ export default function OutreachPage() {
       .replace(/\{\{date\}\}/g, new Date().toLocaleDateString());
   };
 
+  const handleVerifyEmail = async () => {
+    if (!toEmail) return;
+    setVerifyStatus('loading');
+    try {
+      const res = await fetch('/api/verify-email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: toEmail }),
+      });
+      const data = await res.json();
+      setVerifyStatus(data.status || 'unknown');
+      if (data.status === 'valid') toast.success('Email verified!');
+      else if (data.status === 'invalid') toast.error(data.reason || 'Invalid email');
+      else toast(data.reason || 'Could not fully verify', { icon: '⚠️' });
+    } catch { setVerifyStatus('unknown'); }
+  };
+
   const handleSendEmail = async () => {
     if (!toEmail) { toast.error('Recipient email required'); return; }
     if (!subject) { toast.error('Subject required'); return; }
     if (!body) { toast.error('Email body required'); return; }
+    if (verifyStatus === 'invalid') { toast.error('Email is invalid — please fix before sending'); return; }
     setSending(true);
     try {
       const res = await fetch('/api/email', {
@@ -102,10 +154,12 @@ export default function OutreachPage() {
           user_id: user.id, to_email: toEmail, to_name: toName, company: toCompany,
           subject: replaceVars(subject), template_name: templates.find(t => t.id === selectedTemplate)?.name || 'Custom',
           status: 'sent', sent_at: new Date().toISOString(),
+          tracking_id: data.tracking_id || null,
+          open_count: 0, click_count: 0,
         });
       }
-      toast.success('Email sent!');
-      setToEmail(''); setToName(''); setToCompany(''); setSubject(''); setBody(''); setSelectedTemplate('');
+      toast.success('Email sent with tracking!');
+      setToEmail(''); setToName(''); setToCompany(''); setSubject(''); setBody(''); setSelectedTemplate(''); setVerifyStatus('idle');
       fetchSentEmails();
     } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed to send'); }
     finally { setSending(false); }
@@ -117,7 +171,13 @@ export default function OutreachPage() {
   const tabs = [
     { id: 'templates' as const, label: 'Templates', icon: FileText, count: templates.length },
     { id: 'compose' as const, label: 'Compose', icon: Send },
-    { id: 'campaigns' as const, label: 'Sent Emails', icon: CheckCircle2, count: sentEmails.length },
+    { id: 'sequences' as const, label: 'Sequences', icon: Zap },
+    { id: 'abtests' as const, label: 'A/B Tests', icon: Beaker },
+    { id: 'inbox' as const, label: 'Inbox', icon: Inbox },
+    { id: 'deliverability' as const, label: 'Health', icon: Activity },
+    { id: 'warmup' as const, label: 'Warmup', icon: Flame },
+    { id: 'linkedin' as const, label: 'LinkedIn', icon: LinkIcon },
+    { id: 'campaigns' as const, label: 'Sent', icon: CheckCircle2, count: sentEmails.length },
   ];
 
   return (
@@ -194,7 +254,7 @@ export default function OutreachPage() {
             {/* Recipient */}
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Recipient</label>
-              <div className="relative">
+              <div className="relative" ref={leadDropdownRef}>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input value={leadSearch || toEmail} onChange={(e) => { setLeadSearch(e.target.value); setToEmail(e.target.value); setShowLeadDropdown(true); }}
                   onFocus={() => setShowLeadDropdown(true)} placeholder="Search CRM leads or type email..."
@@ -210,7 +270,21 @@ export default function OutreachPage() {
                   </div>
                 )}
               </div>
-              {toName && <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 rounded-lg text-xs text-blue-600 font-medium"><Users className="w-3 h-3" />{toName} at {toCompany}<button onClick={() => { setToEmail(''); setToName(''); setToCompany(''); }} className="ml-auto"><X className="w-3 h-3" /></button></div>}
+              {toName && <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 rounded-lg text-xs text-blue-600 font-medium"><Users className="w-3 h-3" />{toName} at {toCompany}<button onClick={() => { setToEmail(''); setToName(''); setToCompany(''); setVerifyStatus('idle'); }} className="ml-auto"><X className="w-3 h-3" /></button></div>}
+              {/* Email Verification */}
+              {toEmail && toEmail.includes('@') && (
+                <div className="flex items-center gap-2 mt-2">
+                  <button onClick={handleVerifyEmail} disabled={verifyStatus === 'loading'}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors disabled:opacity-50">
+                    {verifyStatus === 'loading' ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                    Verify Email
+                  </button>
+                  {verifyStatus === 'valid' && <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600"><ShieldCheck className="w-3.5 h-3.5" /> Verified</span>}
+                  {verifyStatus === 'invalid' && <span className="flex items-center gap-1 text-[11px] font-semibold text-red-500"><ShieldAlert className="w-3.5 h-3.5" /> Invalid</span>}
+                  {verifyStatus === 'risky' && <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-500"><ShieldQuestion className="w-3.5 h-3.5" /> Risky</span>}
+                  {verifyStatus === 'unknown' && <span className="flex items-center gap-1 text-[11px] font-semibold text-slate-400"><ShieldQuestion className="w-3.5 h-3.5" /> Unknown</span>}
+                </div>
+              )}
             </div>
 
             {/* Template Selector */}
@@ -281,6 +355,8 @@ export default function OutreachPage() {
                   <th className="px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Subject</th>
                   <th className="px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Template</th>
                   <th className="px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Date</th>
+                  <th className="px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Opens</th>
+                  <th className="px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Clicks</th>
                   <th className="px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Status</th>
                 </tr></thead>
                 <tbody>
@@ -291,8 +367,24 @@ export default function OutreachPage() {
                       <td className="px-5 py-3"><span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[10px] font-semibold">{e.template_name}</span></td>
                       <td className="px-5 py-3 text-[11px] text-slate-400">{new Date(e.sent_at).toLocaleDateString()}</td>
                       <td className="px-5 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${e.status === 'sent' ? 'bg-emerald-50 text-emerald-600' : e.status === 'failed' ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-600'}`}>
-                          {e.status === 'sent' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}{e.status}
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${(e.open_count || 0) > 0 ? 'text-blue-600' : 'text-slate-300'}`}>
+                          <Eye className="w-3 h-3" /> {e.open_count || 0}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${(e.click_count || 0) > 0 ? 'text-violet-600' : 'text-slate-300'}`}>
+                          <MousePointerClick className="w-3 h-3" /> {e.click_count || 0}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          (e.open_count || 0) > 0 ? 'bg-blue-50 text-blue-600' :
+                          e.status === 'sent' ? 'bg-emerald-50 text-emerald-600' :
+                          e.status === 'failed' ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-600'
+                        }`}>
+                          {(e.open_count || 0) > 0 ? <><Eye className="w-3 h-3" /> opened</> :
+                           e.status === 'sent' ? <><CheckCircle2 className="w-3 h-3" /> sent</> :
+                           <><XCircle className="w-3 h-3" /> {e.status}</>}
                         </span>
                       </td>
                     </tr>
@@ -304,8 +396,64 @@ export default function OutreachPage() {
         )}</div>
       )}
 
-      {/* Template Editor Modal */}
+      {/* Sequences Tab */}
+      {tab === 'sequences' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-400">Build multi-step drip email sequences with delays and conditions.</p>
+            <button onClick={() => setSequenceOpen(true)}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/25 flex items-center gap-2">
+              <Plus className="w-4 h-4" /> New Sequence
+            </button>
+          </div>
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl flex items-center justify-center mb-4"><Zap className="w-8 h-8 text-amber-400" /></div>
+            <h3 className="text-lg font-semibold text-[#1e293b]">Email Sequences</h3>
+            <p className="text-sm text-slate-400 mt-1 max-w-sm">Create automated multi-step email campaigns. Set delays, conditions (if opened/clicked), and let the system send follow-ups automatically.</p>
+            <button onClick={() => setSequenceOpen(true)} className="mt-4 bg-amber-50 text-amber-600 px-4 py-2 rounded-xl text-sm font-semibold border border-amber-200 flex items-center gap-2">
+              <Plus className="w-3.5 h-3.5" /> Build Your First Sequence
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* A/B Tests Tab */}
+      {tab === 'abtests' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-slate-400">Test multiple email variants to find what works best.</p>
+            <button onClick={() => setAbTestOpen(true)}
+              className="bg-gradient-to-r from-violet-500 to-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-violet-600 hover:to-blue-600 transition-all shadow-lg shadow-violet-500/25 flex items-center gap-2">
+              <Plus className="w-4 h-4" /> New A/B Test
+            </button>
+          </div>
+          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-violet-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4"><Beaker className="w-8 h-8 text-violet-400" /></div>
+            <h3 className="text-lg font-semibold text-[#1e293b]">A/B Testing</h3>
+            <p className="text-sm text-slate-400 mt-1 max-w-sm">Create 2-4 email variants with different subject lines or bodies. Track open and click rates to find the winning version.</p>
+            <button onClick={() => setAbTestOpen(true)} className="mt-4 bg-violet-50 text-violet-600 px-4 py-2 rounded-xl text-sm font-semibold border border-violet-200 flex items-center gap-2">
+              <Beaker className="w-3.5 h-3.5" /> Create Your First Test
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Unified Inbox Tab */}
+      {tab === 'inbox' && <UnifiedInbox />}
+
+      {/* Deliverability Dashboard Tab */}
+      {tab === 'deliverability' && <DeliverabilityDashboard />}
+
+      {/* Email Warmup Tab */}
+      {tab === 'warmup' && <EmailWarmup />}
+
+      {/* LinkedIn Automation Tab */}
+      {tab === 'linkedin' && <LinkedInAutomation />}
+
+      {/* Modals */}
       {editorOpen && <TemplateEditor template={editingTemplate} onSave={handleSaveTemplate} onClose={() => { setEditorOpen(false); setEditingTemplate(null); }} />}
+      {abTestOpen && <ABTestEditor onClose={() => setAbTestOpen(false)} onSaved={() => {}} />}
+      {sequenceOpen && <SequenceBuilder onClose={() => setSequenceOpen(false)} onSaved={() => {}} />}
     </div>
   );
 }

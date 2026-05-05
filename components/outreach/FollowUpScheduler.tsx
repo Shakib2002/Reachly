@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { X, Loader2, Calendar, Check, Bell } from 'lucide-react';
@@ -34,7 +34,8 @@ export default function FollowUpScheduler({ leadId, leadType, leadName, companyN
   ]);
 
   useEffect(() => {
-    supabase.from('templates').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+    supabase.from('templates').select('*').order('created_at', { ascending: false }).then(({ data, error }) => {
+      if (error) console.error('Error fetching templates:', error);
       setTemplates((data || []) as Template[]);
     });
   }, []);
@@ -77,16 +78,16 @@ export default function FollowUpScheduler({ leadId, leadType, leadName, companyN
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="followup-title">
       <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="px-6 pt-5 pb-3 border-b border-slate-100">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-bold text-[#1e293b] flex items-center gap-2"><Bell className="w-5 h-5 text-blue-500" />Schedule Follow-ups</h2>
+              <h2 id="followup-title" className="text-lg font-bold text-[#1e293b] flex items-center gap-2"><Bell className="w-5 h-5 text-blue-500" />Schedule Follow-ups</h2>
               <p className="text-xs text-slate-400 mt-1">Automatically follow up with <strong>{leadName}</strong> at <strong>{companyName}</strong></p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl"><X className="w-4 h-4 text-slate-400" /></button>
+            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl" aria-label="Close follow-up scheduler"><X className="w-4 h-4 text-slate-400" /></button>
           </div>
         </div>
 
@@ -96,6 +97,7 @@ export default function FollowUpScheduler({ leadId, leadType, leadName, companyN
             <div key={idx} className={`p-4 rounded-xl border transition-all ${row.enabled ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-slate-50/50 opacity-60'}`}>
               <div className="flex items-center gap-3 mb-3">
                 <button onClick={() => updateRow(idx, { enabled: !row.enabled })}
+                  aria-label={`${row.enabled ? 'Disable' : 'Enable'} follow-up ${idx + 1}`}
                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${row.enabled ? 'bg-blue-500 border-blue-500' : 'border-slate-300'}`}>
                   {row.enabled && <Check className="w-3 h-3 text-white" />}
                 </button>

@@ -36,7 +36,8 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       const { data, error } = await supabase
         .from('client_leads')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
       if (error) throw error;
       set({ clients: (data || []) as ClientLead[], loading: false });
     } catch (e) {
@@ -171,9 +172,16 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   },
 
   subscribeToChanges: () => {
+    // Get current user ID for filtering — only listen to OUR changes
+    let userId: string | null = null;
+    supabase.auth.getUser().then(({ data }) => { userId = data.user?.id || null; });
+
     const ch = supabase
       .channel('client-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'client_leads' }, () => get().fetchClients())
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'client_leads',
+        ...(userId ? { filter: `user_id=eq.${userId}` } : {}),
+      }, () => get().fetchClients())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   },

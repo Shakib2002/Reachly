@@ -23,7 +23,6 @@ export default function DiscoverPage() {
   const [jobLocation, setJobLocation] = useState('');
   const [jobType, setJobType] = useState('all');
   const [datePosted, setDatePosted] = useState('all');
-  const [experience, setExperience] = useState('all');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState('');
@@ -187,9 +186,9 @@ export default function DiscoverPage() {
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="relative">
-                <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={selectClasses}>
+                <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={selectClasses} aria-label="Job type filter">
                   <option value="all">All Types</option>
                   <option value="FULLTIME">Full-time</option>
                   <option value="PARTTIME">Part-time</option>
@@ -199,20 +198,11 @@ export default function DiscoverPage() {
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
               <div className="relative">
-                <select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className={selectClasses}>
+                <select value={datePosted} onChange={(e) => setDatePosted(e.target.value)} className={selectClasses} aria-label="Date posted filter">
                   <option value="all">Any Time</option>
                   <option value="today">Today</option>
                   <option value="week">This Week</option>
                   <option value="month">This Month</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
-              <div className="relative">
-                <select value={experience} onChange={(e) => setExperience(e.target.value)} className={selectClasses}>
-                  <option value="all">Any Level</option>
-                  <option value="junior">Junior</option>
-                  <option value="mid">Mid-Level</option>
-                  <option value="senior">Senior</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
@@ -235,7 +225,7 @@ export default function DiscoverPage() {
               </div>
             )}
           </div>
-        ) : (
+        ) : tab === 'leads' ? (
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="relative">
@@ -266,7 +256,7 @@ export default function DiscoverPage() {
               Find Leads
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Map Search Tab */}
@@ -336,7 +326,7 @@ export default function DiscoverPage() {
             </div>
           )}
         </div>
-      ) : (
+      ) : tab === 'leads' ? (
         <div>
           {leadsLoading ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -399,7 +389,7 @@ export default function DiscoverPage() {
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* Save to CRM Confirm Modal */}
       {confirmModal && (

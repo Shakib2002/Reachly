@@ -1,24 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { applyRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+const mapSearchSchema = z.object({
+  query: z.string().min(1, 'Search query is required').max(200),
+  maxResults: z.number().int().min(1).max(100).default(20),
+  minRating: z.number().min(0).max(5).default(3.5),
+  maxRating: z.number().min(0).max(5).default(4.3),
+  minReviews: z.number().int().min(0).max(10000).default(15),
+  maxReviews: z.number().int().min(0).max(100000).default(120),
+  websiteFilter: z.enum(['none', 'has', 'any']).default('any'),
+  requirePhone: z.boolean().default(true),
+  onlyOpen: z.boolean().default(true),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const {
-      query,
-      maxResults = 20,
-      minRating = 3.5,
-      maxRating = 4.3,
-      minReviews = 15,
-      maxReviews = 120,
-      websiteFilter = 'any', // 'none' | 'has' | 'any'
-      requirePhone = true,
-      onlyOpen = true,
-    } = await request.json();
+    // Rate limit: 20 map searches per 60 seconds per IP
+    const rateLimited = await applyRateLimit(request, 'search');
+    if (rateLimited) return rateLimited;
 
-    if (!query?.trim()) {
-      return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
+    const parsed = mapSearchSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const { query, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen } = parsed.data;
 
     const apiToken = process.env.APIFY_API_TOKEN;
     if (!apiToken) {

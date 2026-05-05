@@ -19,8 +19,15 @@ export async function checkLimit(userId: string, feature: Feature): Promise<{ al
   if (typeof limit === 'boolean') return { allowed: limit, current: 0, limit: limit ? 1 : 0 };
 
   const { data: usage } = await supabase.from('usage_tracking').select('*').eq('user_id', userId).eq('month', month).single();
-  const countMap: Record<string, string> = { leads: 'leads_count', emails: 'emails_count', jobSearches: 'job_searches_count' };
-  const current = usage?.[countMap[feature]] || 0;
+  const countMap: Record<string, string> = {
+    leads: 'leads_count',
+    emails: 'emails_count',
+    jobSearches: 'job_searches_count',
+    aiGeneration: 'ai_generations_count',
+    sequences: 'sequences_count',
+  };
+  const col = countMap[feature];
+  const current = col ? (usage?.[col] || 0) : 0;
 
   return { allowed: current < (limit as number), current, limit: limit as number };
 }

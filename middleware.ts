@@ -63,8 +63,8 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session
-  const { data: { session } } = await supabase.auth.getSession();
+  // Validate session server-side (getUser() makes a server call, unlike getSession() which only reads cookies)
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Protect dashboard routes
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
@@ -76,12 +76,12 @@ export async function middleware(request: NextRequest) {
                            request.nextUrl.pathname.startsWith('/settings') ||
                            request.nextUrl.pathname.startsWith('/dashboard');
 
-  if (!session && isDashboardRoute) {
+  if (!user && isDashboardRoute) {
     const redirectUrl = new URL('/login', request.url);
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (session && isAuthPage) {
+  if (user && isAuthPage) {
     const redirectUrl = new URL('/discover', request.url);
     return NextResponse.redirect(redirectUrl);
   }

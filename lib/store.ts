@@ -55,7 +55,8 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
       const { data, error } = await supabase
         .from('leads')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
 
       if (error) throw error;
 
@@ -265,18 +266,28 @@ export const useLeadStore = create<LeadStore>((set, get) => ({
   },
 
   subscribeToChanges: () => {
+    // Get current user ID for filtering — only listen to OUR changes
+    let userId: string | null = null;
+    supabase.auth.getUser().then(({ data }) => { userId = data.user?.id || null; });
+
     const channel = supabase
       .channel('leads-changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'leads' },
+        {
+          event: '*', schema: 'public', table: 'leads',
+          ...(userId ? { filter: `user_id=eq.${userId}` } : {}),
+        },
         () => {
           get().fetchLeads();
         }
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'activities' },
+        {
+          event: '*', schema: 'public', table: 'activities',
+          ...(userId ? { filter: `user_id=eq.${userId}` } : {}),
+        },
         () => {
           get().fetchActivities();
         }

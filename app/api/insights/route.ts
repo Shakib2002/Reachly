@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
     const { summary, mode = 'job' } = await request.json();
+
+    // Rate limit: 10 AI insights per 60 seconds per IP
+    const rateLimited = await applyRateLimit(request, 'sensitive');
+    if (rateLimited) return rateLimited;
+
     if (!summary) return NextResponse.json({ error: 'Summary required' }, { status: 400 });
 
     const aiKey = process.env.AI_API_KEY;

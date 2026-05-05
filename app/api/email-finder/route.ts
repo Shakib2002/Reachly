@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
+const emailFinderSchema = z.object({
+  firstName: z.string().max(100).optional(),
+  lastName: z.string().max(100).optional(),
+  domain: z.string().max(200).optional(),
+  linkedinUrl: z.string().url().max(500).optional(),
+}).refine(d => d.domain || d.linkedinUrl, { message: 'domain or linkedinUrl is required' });
+
 export async function POST(request: NextRequest) {
   try {
-    const { firstName, lastName, domain, linkedinUrl } = await request.json();
+    // Rate limit: 10 lookups per 60 seconds per IP (costs money)
+    const rateLimited = await applyRateLimit(request, 'sensitive');
+    if (rateLimited) return rateLimited;
 
-    if (!domain && !linkedinUrl) {
-      return NextResponse.json({ error: 'domain or linkedinUrl is required' }, { status: 400 });
+    const parsed = emailFinderSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
+
+    const { firstName, lastName, domain, linkedinUrl } = parsed.data;
 
     // Try user's custom Skrapp key first, fall back to platform key
     let apiKey = process.env.SKRAPP_API_KEY;

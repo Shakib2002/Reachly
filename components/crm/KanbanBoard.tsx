@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
   closestCorners,
   PointerSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragStartEvent,
@@ -15,11 +16,13 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import LeadCard, { LeadCardSkeleton } from './LeadCard';
 import { useLeadStore } from '@/lib/store';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import type { Lead, LeadStatus } from '@/types';
 
 const columns: {
@@ -110,10 +113,14 @@ export default function KanbanBoard({
 }: KanbanBoardProps) {
   const { leads, loading, updateLeadStatus, deleteLead } = useLeadStore();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -203,10 +210,16 @@ export default function KanbanBoard({
   };
 
   const handleDeleteLead = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this lead?')) {
-      deleteLead(id);
-    }
+    const lead = leads.find(l => l.id === id);
+    setDeleteTarget({ id, name: lead?.title || 'this lead' });
   };
+
+  const confirmDelete = useCallback(() => {
+    if (deleteTarget) {
+      deleteLead(deleteTarget.id);
+      setDeleteTarget(null);
+    }
+  }, [deleteTarget, deleteLead]);
 
   const handleEmailLead = (lead: Lead) => {
     if (lead.email) {
@@ -215,6 +228,7 @@ export default function KanbanBoard({
   };
 
   return (
+    <>
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
@@ -246,6 +260,7 @@ export default function KanbanBoard({
                 <button
                   onClick={() => onAddToColumn(col.id)}
                   className="p-1 hover:bg-white rounded-lg transition-colors group"
+                  aria-label={`Add lead to ${col.label} column`}
                 >
                   <Plus className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
                 </button>
@@ -312,5 +327,17 @@ export default function KanbanBoard({
         ) : null}
       </DragOverlay>
     </DndContext>
+
+    {/* Delete Confirmation */}
+    <ConfirmDialog
+      open={!!deleteTarget}
+      title="Delete lead?"
+      message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+      confirmLabel="Delete"
+      variant="danger"
+      onConfirm={confirmDelete}
+      onCancel={() => setDeleteTarget(null)}
+    />
+    </>
   );
 }

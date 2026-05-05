@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
@@ -73,6 +73,13 @@ export async function signInWithGoogle() {
   });
   if (error) throw error;
   return data;
+}
+
+export async function resetPassword(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/login?reset=true`,
+  });
+  if (error) throw error;
 }
 
 export async function signOut() {

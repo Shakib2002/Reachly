@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useLeadStore } from '@/lib/store';
 import { useClientStore } from '@/lib/clientStore';
 import KanbanBoard from '@/components/crm/KanbanBoard';
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import type { Lead, LeadStatus, ClientLead, ClientLeadStatus } from '@/types';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 type CRMMode = 'job' | 'client';
 
@@ -49,6 +50,8 @@ export default function CRMPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedClient, setSelectedClient] = useState<ClientLead | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: 'lead' | 'client'; name: string } | null>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   // Load saved mode
   useEffect(() => {
@@ -69,6 +72,17 @@ export default function CRMPage() {
     const unsub2 = subClients();
     return () => { unsub1(); unsub2(); };
   }, [fetchLeads, fetchClients, subscribeToChanges, subClients]);
+
+  // Close sort dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setSortOpen(false);
+      }
+    };
+    if (sortOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [sortOpen]);
 
   // Filtered job leads for list
   const filteredLeads = useMemo(() => {
@@ -110,8 +124,18 @@ export default function CRMPage() {
   const handleAddToClientColumn = (_status: ClientLeadStatus) => setClientModalOpen(true);
   const handleEditLead = (lead: Lead) => setSelectedLead(lead);
   const handleEditClient = (client: ClientLead) => setSelectedClient(client);
-  const handleDeleteLead = (id: string) => { if (window.confirm('Delete this lead?')) deleteLead(id); };
-  const handleDeleteClient = (id: string) => { if (window.confirm('Delete this client?')) deleteClient(id); };
+  const handleDeleteLead = (id: string, name: string) => {
+    setDeleteConfirm({ id, type: 'lead', name });
+  };
+  const handleDeleteClient = (id: string, name: string) => {
+    setDeleteConfirm({ id, type: 'client', name });
+  };
+  const confirmDelete = useCallback(() => {
+    if (!deleteConfirm) return;
+    if (deleteConfirm.type === 'lead') deleteLead(deleteConfirm.id);
+    else deleteClient(deleteConfirm.id);
+    setDeleteConfirm(null);
+  }, [deleteConfirm, deleteLead, deleteClient]);
 
   const isJobMode = mode === 'job';
   const totalCount = isJobMode ? leads.length : clients.length;
@@ -169,7 +193,7 @@ export default function CRMPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative" ref={sortRef}>
             <button onClick={() => setSortOpen(!sortOpen)}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors flex items-center gap-2">
               <ArrowDownAZ className="w-4 h-4" />
@@ -256,7 +280,7 @@ export default function CRMPage() {
                         <td className="px-5 py-3.5 text-sm text-slate-400 hidden md:table-cell">{lead.source || '—'}</td>
                         <td className="px-5 py-3.5 text-sm text-slate-400 hidden sm:table-cell">{formatRelativeTime(lead.created_at)}</td>
                         <td className="px-5 py-3.5">
-                          <button onClick={e => { e.stopPropagation(); handleDeleteLead(lead.id); }}
+                          <button onClick={e => { e.stopPropagation(); handleDeleteLead(lead.id, lead.title || 'this lead'); }}
                             className="p-1.5 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -318,7 +342,7 @@ export default function CRMPage() {
                         <td className="px-5 py-3.5 text-sm text-emerald-600 font-medium hidden md:table-cell">{client.budget_range || '—'}</td>
                         <td className="px-5 py-3.5 text-sm text-slate-400 hidden sm:table-cell">{formatRelativeTime(client.created_at)}</td>
                         <td className="px-5 py-3.5">
-                          <button onClick={e => { e.stopPropagation(); handleDeleteClient(client.id); }}
+                          <button onClick={e => { e.stopPropagation(); handleDeleteClient(client.id, client.client_name || 'this client'); }}
                             className="p-1.5 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -351,6 +375,17 @@ export default function CRMPage() {
       {/* Modals */}
       {selectedLead && <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />}
       {selectedClient && <ClientModal client={selectedClient} onClose={() => setSelectedClient(null)} />}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title={`Delete ${deleteConfirm?.type === 'client' ? 'client' : 'lead'}?`}
+        message={`Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

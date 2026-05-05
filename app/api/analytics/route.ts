@@ -38,15 +38,17 @@ export async function GET(request: NextRequest) {
     const prevCutoff = new Date();
     prevCutoff.setDate(prevCutoff.getDate() - period * 2);
 
+    const prevCutoffISO = prevCutoff.toISOString();
+
     const uid = user.id;
 
     // ─── Job Data ──────────────────────────────────────────────
     const jobResult = (mode === 'job' || mode === 'combined') ? await (async () => {
       const [leadsRes, emailsRes, fuRes, activitiesRes] = await Promise.all([
-        supabase.from('leads').select('id,status,source,created_at').eq('user_id', uid),
-        supabase.from('emails_sent').select('id,status,sent_at').eq('user_id', uid),
-        supabase.from('follow_ups').select('id,status,scheduled_date,sent_at').eq('user_id', uid).eq('lead_type', 'job'),
-        supabase.from('activities').select('id,created_at').eq('user_id', uid).gte('created_at', new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('leads').select('id,status,source,created_at').eq('user_id', uid).gte('created_at', prevCutoffISO).limit(1000),
+        supabase.from('emails_sent').select('id,status,sent_at').eq('user_id', uid).gte('sent_at', prevCutoffISO).limit(1000),
+        supabase.from('follow_ups').select('id,status,scheduled_date,sent_at').eq('user_id', uid).eq('lead_type', 'job').gte('scheduled_date', prevCutoffISO).limit(1000),
+        supabase.from('activities').select('id,created_at').eq('user_id', uid).gte('created_at', new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000).toISOString()).limit(1000),
       ]);
 
       const leads = leadsRes.data || [];
@@ -113,8 +115,8 @@ export async function GET(request: NextRequest) {
     // ─── Client Data ───────────────────────────────────────────
     const clientResult = (mode === 'client' || mode === 'combined') ? await (async () => {
       const [clientsRes, clientFuRes] = await Promise.all([
-        supabase.from('client_leads').select('id,status,source,priority,project_type,budget_range,created_at,won_at,lost_at').eq('user_id', uid),
-        supabase.from('follow_ups').select('id,status,sent_at').eq('user_id', uid).eq('lead_type', 'client'),
+        supabase.from('client_leads').select('id,status,source,priority,project_type,budget_range,created_at,won_at,lost_at').eq('user_id', uid).gte('created_at', prevCutoffISO).limit(1000),
+        supabase.from('follow_ups').select('id,status,sent_at').eq('user_id', uid).eq('lead_type', 'client').limit(500),
       ]);
 
       const clients = clientsRes.data || [];
@@ -179,7 +181,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ job: jobResult, client: clientResult });
   } catch (err) {
-    console.error('Analytics API error:', err);
+    console.error('[Analytics API]', err instanceof Error ? err.message : 'Unknown error');
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

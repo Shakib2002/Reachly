@@ -1,8 +1,22 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { BarChart3, Users, Mail, RefreshCw, Calendar, Trophy, Target, Building2, DollarSign, Download, ArrowUpRight, ArrowDownRight, Briefcase, Loader2, Lightbulb } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import dynamic from 'next/dynamic';
 import { useAnalytics, type AnalyticsMode, type AnalyticsPeriod } from '@/hooks/useAnalytics';
+
+// Lazy load Recharts components — saves ~200KB from initial bundle
+const ResponsiveContainer = dynamic(() => import('recharts').then(m => m.ResponsiveContainer), { ssr: false });
+const AreaChart = dynamic(() => import('recharts').then(m => m.AreaChart), { ssr: false });
+const Area = dynamic(() => import('recharts').then(m => m.Area), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(m => m.CartesianGrid), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(m => m.XAxis), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(m => m.YAxis), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then(m => m.Tooltip), { ssr: false });
+const BarChart = dynamic(() => import('recharts').then(m => m.BarChart), { ssr: false });
+const Bar = dynamic(() => import('recharts').then(m => m.Bar), { ssr: false });
+const PieChart = dynamic(() => import('recharts').then(m => m.PieChart), { ssr: false });
+const Pie = dynamic(() => import('recharts').then(m => m.Pie), { ssr: false });
+const Cell = dynamic(() => import('recharts').then(m => m.Cell), { ssr: false });
 
 const TIP = { contentStyle: { borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' } };
 
@@ -30,7 +44,9 @@ function StatCard({ title, value, change, trend, icon: Icon, iconBg, iconColor }
   );
 }
 
-function FunnelChart({ stages }: { stages: { label: string; count: number; color: string }[] }) {
+const MemoStatCard = memo(StatCard);
+
+function FunnelChartInner({ stages }: { stages: { label: string; count: number; color: string }[] }) {
   const max = Math.max(1, ...stages.map(s => s.count));
   return (
     <div className="space-y-3">
@@ -59,6 +75,8 @@ function FunnelChart({ stages }: { stages: { label: string; count: number; color
     </div>
   );
 }
+
+const FunnelChart = memo(FunnelChartInner);
 
 function SkeletonPage() {
   return (
@@ -302,12 +320,12 @@ export default function AnalyticsPage() {
           )}
           {/* Job Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-            <StatCard title="Total Leads" value={j.totalLeads} change={`${j.totalLeadsPct > 0 ? '+' : ''}${j.totalLeadsPct}%`} trend={pctTrend(j.totalLeadsPct)} icon={Users} iconBg="bg-blue-50" iconColor="text-blue-600" />
-            <StatCard title="Emails Sent" value={j.emailsSent} change={`${j.emailsSentPct > 0 ? '+' : ''}${j.emailsSentPct}%`} trend={pctTrend(j.emailsSentPct)} icon={Mail} iconBg="bg-violet-50" iconColor="text-violet-600" />
-            <StatCard title="Follow-ups Sent" value={j.followUpsSent} change={`${j.followUpsPct > 0 ? '+' : ''}${j.followUpsPct}%`} trend={pctTrend(j.followUpsPct)} icon={RefreshCw} iconBg="bg-amber-50" iconColor="text-amber-600" />
-            <StatCard title="Interviews" value={j.interviews} change={j.totalLeads > 0 ? `${Math.round((j.interviews / j.totalLeads) * 100)}% rate` : '0%'} trend={j.interviews > 0 ? 'up' : 'neutral'} icon={Calendar} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
-            <StatCard title="Offers" value={j.offers} change={j.totalLeads > 0 ? `${Math.round((j.offers / j.totalLeads) * 100)}% rate` : '0%'} trend={j.offers > 0 ? 'up' : 'neutral'} icon={Trophy} iconBg="bg-orange-50" iconColor="text-orange-600" />
-            <StatCard title="Conversion" value={`${j.conversionRate}%`} change={`${j.offers}/${j.totalLeads}`} trend={j.conversionRate > 0 ? 'up' : 'neutral'} icon={Target} iconBg="bg-red-50" iconColor="text-red-600" />
+            <MemoStatCard title="Total Leads" value={j.totalLeads} change={`${j.totalLeadsPct > 0 ? '+' : ''}${j.totalLeadsPct}%`} trend={pctTrend(j.totalLeadsPct)} icon={Users} iconBg="bg-blue-50" iconColor="text-blue-600" />
+            <MemoStatCard title="Emails Sent" value={j.emailsSent} change={`${j.emailsSentPct > 0 ? '+' : ''}${j.emailsSentPct}%`} trend={pctTrend(j.emailsSentPct)} icon={Mail} iconBg="bg-violet-50" iconColor="text-violet-600" />
+            <MemoStatCard title="Follow-ups Sent" value={j.followUpsSent} change={`${j.followUpsPct > 0 ? '+' : ''}${j.followUpsPct}%`} trend={pctTrend(j.followUpsPct)} icon={RefreshCw} iconBg="bg-amber-50" iconColor="text-amber-600" />
+            <MemoStatCard title="Interviews" value={j.interviews} change={j.totalLeads > 0 ? `${Math.round((j.interviews / j.totalLeads) * 100)}% rate` : '0%'} trend={j.interviews > 0 ? 'up' : 'neutral'} icon={Calendar} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+            <MemoStatCard title="Offers" value={j.offers} change={j.totalLeads > 0 ? `${Math.round((j.offers / j.totalLeads) * 100)}% rate` : '0%'} trend={j.offers > 0 ? 'up' : 'neutral'} icon={Trophy} iconBg="bg-orange-50" iconColor="text-orange-600" />
+            <MemoStatCard title="Conversion" value={`${j.conversionRate}%`} change={`${j.offers}/${j.totalLeads}`} trend={j.conversionRate > 0 ? 'up' : 'neutral'} icon={Target} iconBg="bg-red-50" iconColor="text-red-600" />
           </div>
 
           {/* Charts Row 1 */}
@@ -360,12 +378,12 @@ export default function AnalyticsPage() {
           )}
           {/* Client Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-            <StatCard title="Total Clients" value={c.totalClients} change={`${c.totalClientsPct > 0 ? '+' : ''}${c.totalClientsPct}%`} trend={pctTrend(c.totalClientsPct)} icon={Building2} iconBg="bg-blue-50" iconColor="text-blue-600" />
-            <StatCard title="Proposals Sent" value={c.proposalsSent} change="stage" trend="neutral" icon={Mail} iconBg="bg-violet-50" iconColor="text-violet-600" />
-            <StatCard title="Negotiations" value={c.activeNegotiations} change="active" trend={c.activeNegotiations > 0 ? 'up' : 'neutral'} icon={RefreshCw} iconBg="bg-amber-50" iconColor="text-amber-600" />
-            <StatCard title="Projects Won" value={c.projectsWon} change={`${c.winRate}% rate`} trend={c.projectsWon > 0 ? 'up' : 'neutral'} icon={Trophy} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
-            <StatCard title="Pipeline Value" value={c.pipelineValue > 0 ? `$${c.pipelineValue.toLocaleString()}` : '$0'} change="estimated" trend={c.pipelineValue > 0 ? 'up' : 'neutral'} icon={DollarSign} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
-            <StatCard title="Win Rate" value={`${c.winRate}%`} change={`${c.projectsWon}/${c.projectsWon + c.projectsLost}`} trend={c.winRate >= 30 ? 'up' : c.winRate > 0 ? 'neutral' : 'down'} icon={Target} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+            <MemoStatCard title="Total Clients" value={c.totalClients} change={`${c.totalClientsPct > 0 ? '+' : ''}${c.totalClientsPct}%`} trend={pctTrend(c.totalClientsPct)} icon={Building2} iconBg="bg-blue-50" iconColor="text-blue-600" />
+            <MemoStatCard title="Proposals Sent" value={c.proposalsSent} change="stage" trend="neutral" icon={Mail} iconBg="bg-violet-50" iconColor="text-violet-600" />
+            <MemoStatCard title="Negotiations" value={c.activeNegotiations} change="active" trend={c.activeNegotiations > 0 ? 'up' : 'neutral'} icon={RefreshCw} iconBg="bg-amber-50" iconColor="text-amber-600" />
+            <MemoStatCard title="Projects Won" value={c.projectsWon} change={`${c.winRate}% rate`} trend={c.projectsWon > 0 ? 'up' : 'neutral'} icon={Trophy} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
+            <MemoStatCard title="Pipeline Value" value={c.pipelineValue > 0 ? `$${c.pipelineValue.toLocaleString()}` : '$0'} change="estimated" trend={c.pipelineValue > 0 ? 'up' : 'neutral'} icon={DollarSign} iconBg="bg-yellow-50" iconColor="text-yellow-600" />
+            <MemoStatCard title="Win Rate" value={`${c.winRate}%`} change={`${c.projectsWon}/${c.projectsWon + c.projectsLost}`} trend={c.winRate >= 30 ? 'up' : c.winRate > 0 ? 'neutral' : 'down'} icon={Target} iconBg="bg-emerald-50" iconColor="text-emerald-600" />
           </div>
 
           {/* Client Charts */}

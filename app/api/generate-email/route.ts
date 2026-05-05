@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 AI generations per 60 seconds per IP
+    const rateLimited = await applyRateLimit(request, 'sensitive');
+    if (rateLimited) return rateLimited;
+
     const { purpose, tone, keyPoints, recipientInfo } = await request.json();
 
     if (!purpose) {
@@ -59,8 +64,14 @@ Return ONLY a JSON object with exactly these fields (no markdown, no code blocks
           const data = await response.json();
           const text = data.choices?.[0]?.message?.content || '';
           const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          const parsed = JSON.parse(cleaned);
-          return NextResponse.json({ subject: parsed.subject, body: parsed.body });
+          try {
+            const parsed = JSON.parse(cleaned);
+            if (parsed.subject && parsed.body) {
+              return NextResponse.json({ subject: parsed.subject, body: parsed.body });
+            }
+          } catch {
+            console.warn('AI returned malformed JSON, falling back to templates');
+          }
         }
       } catch (e) {
         console.warn('AI API failed, using built-in templates:', e);

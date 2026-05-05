@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useCallback } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser';
@@ -94,12 +94,36 @@ export function useFollowUps() {
     try {
       const fu = followUps.find(f => f.id === id);
       if (!fu) throw new Error('Follow-up not found');
+
+      // Resolve actual recipient email from lead data
+      let recipientEmail = '';
+      if (fu.lead_type === 'job') {
+        const { data: lead } = await supabase
+          .from('leads')
+          .select('email, title, company')
+          .eq('id', fu.lead_id)
+          .single();
+        recipientEmail = lead?.email || '';
+      } else {
+        const { data: client } = await supabase
+          .from('client_leads')
+          .select('email, client_name')
+          .eq('id', fu.lead_id)
+          .single();
+        recipientEmail = client?.email || '';
+      }
+
+      if (!recipientEmail) {
+        toast.error('No email address found for this lead. Please add an email first.');
+        return;
+      }
+
       // Send via our email API
       const res = await fetch('/api/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: 'recipient@example.com', // Will be resolved from lead
+          to: recipientEmail,
           subject: fu.subject,
           body: fu.body,
           leadId: fu.lead_id,

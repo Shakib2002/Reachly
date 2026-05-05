@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { applyRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,10 @@ interface JSearchJob {
 export async function POST(request: NextRequest) {
   try {
     const { company, title, location } = await request.json();
+
+    // Rate limit: 20 searches per 60 seconds per IP
+    const rateLimited = await applyRateLimit(request, 'search');
+    if (rateLimited) return rateLimited;
 
     if (!company && !title) {
       return NextResponse.json({ error: 'Company or title is required' }, { status: 400 });

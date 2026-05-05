@@ -52,6 +52,14 @@ interface CacheEntry {
 }
 
 const cache: Record<string, CacheEntry> = {};
+const MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes — GC threshold
+
+function evictStaleCache() {
+  const now = Date.now();
+  for (const key of Object.keys(cache)) {
+    if (now - cache[key].ts > MAX_CACHE_AGE) delete cache[key];
+  }
+}
 
 export function useAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -59,7 +67,6 @@ export function useAnalytics() {
   const [error, setError] = useState<string | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
   const [insightLoading, setInsightLoading] = useState(false);
-  const [insightTime, setInsightTime] = useState<Date | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const getAnalyticsData = useCallback(async (period: string, mode: AnalyticsMode) => {
@@ -83,6 +90,7 @@ export function useAnalytics() {
       if (!res.ok) throw new Error('Failed to fetch analytics');
       const json: AnalyticsData = await res.json();
       cache[key] = { data: json, ts: Date.now() };
+      evictStaleCache();
       setData(json);
       return json;
     } catch (e: unknown) {
@@ -112,7 +120,6 @@ export function useAnalytics() {
       });
       const json = await res.json();
       setInsights(json.insights || []);
-      setInsightTime(new Date());
     } catch {
       setInsights(['Unable to generate insights right now.']);
     } finally {
@@ -148,7 +155,6 @@ export function useAnalytics() {
     error,
     insights,
     insightLoading,
-    insightTime,
     getAnalyticsData,
     getInsights,
     exportToCSV,

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase-server';
+import { applyRateLimit } from '@/lib/rateLimit';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limit: 20 exports per 60 seconds per IP
+    const rateLimited = await applyRateLimit(request, 'search');
+    if (rateLimited) return rateLimited;
+
     const supabase = createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

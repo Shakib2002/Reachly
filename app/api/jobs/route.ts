@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
+import { applyRateLimit } from '@/lib/rateLimit';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+const jobSearchSchema = z.object({
+  query: z.string().min(1, 'Query is required').max(200),
+  location: z.string().max(200).optional(),
+  jobType: z.string().max(50).optional(),
+  datePosted: z.string().max(30).optional(),
+  page: z.number().int().min(1).max(50).optional(),
+});
 
 interface JSearchJob {
   job_id: string;
@@ -24,11 +34,19 @@ interface JSearchJob {
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, location, jobType, datePosted, page } = await request.json();
+    // Rate limit: 20 searches per 60 seconds per IP
+    const rateLimited = await applyRateLimit(request, 'search');
+    if (rateLimited) return rateLimited;
 
-    if (!query) {
-      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+    const parsed = jobSearchSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+
+    const { query, location, jobType, datePosted, page } = parsed.data;
 
     // Try user's custom key first, fall back to platform key
     let apiKey = process.env.RAPIDAPI_KEY;
@@ -113,18 +131,18 @@ export async function POST(request: NextRequest) {
 
 function generateDemoJobs(query: string, location?: string, _jobType?: string) {
   const companies = [
-    { name: 'Google', logo: 'https://logo.clearbit.com/google.com' },
-    { name: 'Microsoft', logo: 'https://logo.clearbit.com/microsoft.com' },
-    { name: 'Amazon', logo: 'https://logo.clearbit.com/amazon.com' },
-    { name: 'Meta', logo: 'https://logo.clearbit.com/meta.com' },
-    { name: 'Apple', logo: 'https://logo.clearbit.com/apple.com' },
-    { name: 'Netflix', logo: 'https://logo.clearbit.com/netflix.com' },
-    { name: 'Stripe', logo: 'https://logo.clearbit.com/stripe.com' },
-    { name: 'Shopify', logo: 'https://logo.clearbit.com/shopify.com' },
-    { name: 'Spotify', logo: 'https://logo.clearbit.com/spotify.com' },
-    { name: 'Airbnb', logo: 'https://logo.clearbit.com/airbnb.com' },
-    { name: 'Uber', logo: 'https://logo.clearbit.com/uber.com' },
-    { name: 'Salesforce', logo: 'https://logo.clearbit.com/salesforce.com' },
+    { name: 'Google', logo: 'https://www.google.com/s2/favicons?domain=google.com&sz=64' },
+    { name: 'Microsoft', logo: 'https://www.google.com/s2/favicons?domain=microsoft.com&sz=64' },
+    { name: 'Amazon', logo: 'https://www.google.com/s2/favicons?domain=amazon.com&sz=64' },
+    { name: 'Meta', logo: 'https://www.google.com/s2/favicons?domain=meta.com&sz=64' },
+    { name: 'Apple', logo: 'https://www.google.com/s2/favicons?domain=apple.com&sz=64' },
+    { name: 'Netflix', logo: 'https://www.google.com/s2/favicons?domain=netflix.com&sz=64' },
+    { name: 'Stripe', logo: 'https://www.google.com/s2/favicons?domain=stripe.com&sz=64' },
+    { name: 'Shopify', logo: 'https://www.google.com/s2/favicons?domain=shopify.com&sz=64' },
+    { name: 'Spotify', logo: 'https://www.google.com/s2/favicons?domain=spotify.com&sz=64' },
+    { name: 'Airbnb', logo: 'https://www.google.com/s2/favicons?domain=airbnb.com&sz=64' },
+    { name: 'Uber', logo: 'https://www.google.com/s2/favicons?domain=uber.com&sz=64' },
+    { name: 'Salesforce', logo: 'https://www.google.com/s2/favicons?domain=salesforce.com&sz=64' },
   ];
 
   const titleVariations = [

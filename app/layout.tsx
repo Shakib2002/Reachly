@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: { default: "Reachly — Find. Track. Close.", template: "%s | Reachly" },
   description: "All-in-one platform for job seekers and freelancers. Search jobs, manage leads, send AI-powered emails, and track analytics.",
   keywords: ["job search", "lead management", "CRM", "email outreach", "analytics", "SaaS", "AI emails"],
+  other: { "mobile-web-app-capable": "yes", "apple-mobile-web-app-status-bar-style": "default" },
   openGraph: {
     title: "Reachly — Find. Track. Close.",
     description: "All-in-one platform for job seekers and freelancers.",

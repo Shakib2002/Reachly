@@ -3,7 +3,7 @@ export interface User {
   email: string;
   full_name: string;
   avatar_url: string | null;
-  plan: 'free' | 'pro' | 'enterprise';
+  plan: 'free' | 'pro' | 'team';
   created_at: string;
 }
 
@@ -108,4 +108,102 @@ export interface FollowUp {
   // joined fields
   lead_name?: string;
   company_name?: string;
+}
+
+// ─── Email Tracking ────────────────────────────────────
+export interface EmailEvent {
+  id: string;
+  tracking_id: string;
+  event_type: 'open' | 'click';
+  url?: string;
+  ip?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+// ─── Email Sequences ───────────────────────────────────
+export interface Sequence {
+  id: string;
+  user_id: string;
+  name: string;
+  status: 'draft' | 'active' | 'paused';
+  created_at: string;
+  steps?: SequenceStep[];
+  _enrollmentCount?: number;
+}
+
+export interface SequenceStep {
+  id: string;
+  sequence_id: string;
+  step_order: number;
+  delay_days: number;
+  delay_hours: number;
+  subject: string;
+  body: string;
+  template_id?: string | null;
+  condition: 'always' | 'if_opened' | 'if_not_opened' | 'if_clicked' | 'if_not_clicked';
+}
+
+export interface SequenceEnrollment {
+  id: string;
+  sequence_id: string;
+  lead_id: string;
+  lead_type: 'job' | 'client';
+  current_step: number;
+  status: 'active' | 'completed' | 'paused' | 'bounced';
+  started_at: string;
+  completed_at?: string;
+}
+
+// ─── A/B Testing ───────────────────────────────────────
+export interface ABTest {
+  id: string;
+  user_id: string;
+  name: string;
+  status: 'active' | 'completed' | 'draft';
+  winning_metric: 'open_rate' | 'click_rate';
+  auto_winner_threshold: number;
+  winner_variant_id?: string | null;
+  created_at: string;
+  variants?: ABVariant[];
+}
+
+export interface ABVariant {
+  id: string;
+  ab_test_id: string;
+  name: string;
+  subject: string;
+  body: string;
+  send_count: number;
+  open_count: number;
+  click_count: number;
+}
+
+// ─── Teams ─────────────────────────────────────────────
+export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export interface Team {
+  id: string;
+  name: string;
+  owner_id: string;
+  created_at: string;
+}
+
+export interface TeamMember {
+  id: string;
+  team_id: string;
+  user_id: string;
+  role: TeamRole;
+  joined_at: string;
+  email?: string;
+  full_name?: string;
+}
+
+export interface TeamInvite {
+  id: string;
+  team_id: string;
+  token: string;
+  email?: string;
+  expires_at: string;
+  used_at?: string;
 }
