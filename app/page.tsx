@@ -55,16 +55,16 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
             <Image src="/images/logo.png" alt="Reachly" width={36} height={36} className="rounded-xl shadow-lg shadow-blue-500/30" />
-            <span className="text-xl font-bold text-[#1e293b] font-display">Reachly</span>
+            <span className={`text-xl font-bold font-display transition-colors ${scrolled ? 'text-[#1e293b]' : 'text-white'}`}>Reachly</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            {NAV.map(n=><a key={n} href={`#${n.toLowerCase()}`} className="text-sm font-medium text-slate-500 hover:text-[#1e293b] transition-colors">{n}</a>)}
+            {NAV.map(n=><a key={n} href={`#${n.toLowerCase()}`} className={`text-sm font-medium transition-colors ${scrolled ? 'text-slate-500 hover:text-[#1e293b]' : 'text-blue-100 hover:text-white'}`}>{n}</a>)}
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-[#1e293b]">Login</Link>
-            <Link href="/register" className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all">Get Started Free</Link>
+            <Link href="/login" className={`px-4 py-2 text-sm font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-[#1e293b]' : 'text-blue-100 hover:text-white'}`}>Login</Link>
+            <Link href="/register" className={`px-5 py-2.5 text-sm font-semibold rounded-full shadow-lg transition-all ${scrolled ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-500/25' : 'bg-white text-blue-600 shadow-black/10 hover:shadow-black/20'}`}>Get Started Free</Link>
           </div>
-          <button onClick={()=>setMobileMenu(!mobileMenu)} className="md:hidden p-2"><Menu className="w-5 h-5 text-slate-600"/></button>
+          <button onClick={()=>setMobileMenu(!mobileMenu)} className="md:hidden p-2"><Menu className={`w-5 h-5 ${scrolled ? 'text-slate-600' : 'text-white'}`}/></button>
         </div>
         {mobileMenu&&<div className="md:hidden bg-white border-t px-6 py-4 space-y-3 shadow-lg">
           {NAV.map(n=><a key={n} href={`#${n.toLowerCase()}`} onClick={()=>setMobileMenu(false)} className="block text-sm font-medium text-slate-600 py-2">{n}</a>)}
@@ -73,37 +73,60 @@ export default function LandingPage() {
         </div>}
       </nav>
 
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden gradient-mesh grid-pattern">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+      {/* Hero — Inspired by Instantly.ai's premium gradient */}
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+        {/* Bold gradient background */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(180deg, #0c1445 0%, #1a3a8a 30%, #2563eb 55%, #60a5fa 75%, #dbeafe 92%, #ffffff 100%)'
+        }} />
+        {/* Animated gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-30" style={{
+          background: 'radial-gradient(circle, rgba(99,102,241,0.5) 0%, transparent 70%)',
+          animation: 'orb-float-1 20s ease-in-out infinite'
+        }} />
+        <div className="absolute top-20 right-1/4 w-[500px] h-[500px] rounded-full opacity-20" style={{
+          background: 'radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%)',
+          animation: 'orb-float-2 25s ease-in-out infinite'
+        }} />
+        <div className="absolute bottom-0 left-1/2 w-[800px] h-[400px] rounded-full opacity-20" style={{
+          background: 'radial-gradient(ellipse, rgba(96,165,250,0.6) 0%, transparent 70%)',
+          animation: 'orb-float-3 18s ease-in-out infinite'
+        }} />
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
+          backgroundSize: '64px 64px'
+        }} />
+        
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 relative z-10">
           <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50/80 border border-blue-200/60 rounded-full text-xs font-semibold text-blue-600 mb-6 hero-animate backdrop-blur-sm">🚀 Now with AI-powered outreach &amp; LinkedIn automation</div>
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-[#1e293b] leading-[1.1] tracking-tight font-display hero-animate hero-animate-delay-1">Close 10x More Deals<br/><span className="text-shimmer">Without the Busywork.</span></h1>
-            <p className="mt-5 text-lg text-slate-500 max-w-lg mx-auto lg:mx-0 leading-relaxed hero-animate hero-animate-delay-2">Find prospects, send AI-personalized emails, and track every deal in one platform. Replace 5 tools with Reachly.</p>
-            <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 justify-center lg:justify-start">
-              <Link href="/register" className="px-8 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-full shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-all text-sm flex items-center gap-2">Start for Free <ArrowRight className="w-4 h-4"/></Link>
-              <button className="px-6 py-3.5 border border-slate-200 text-slate-600 font-semibold rounded-full hover:bg-slate-50 text-sm flex items-center gap-2"><Play className="w-4 h-4"/>Watch Demo</button>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 border border-white/20 rounded-full text-xs font-semibold text-blue-100 mb-6 hero-animate backdrop-blur-sm">🚀 Now with AI-powered outreach &amp; LinkedIn automation</div>
+            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-white leading-[1.1] tracking-tight font-display hero-animate hero-animate-delay-1">Close 10x More Deals<br/><span className="text-blue-200">Without the Busywork.</span></h1>
+            <p className="mt-5 text-lg text-blue-100/80 max-w-lg mx-auto lg:mx-0 leading-relaxed hero-animate hero-animate-delay-2">Find prospects, send AI-personalized emails, and track every deal in one platform. Replace 5 tools with Reachly.</p>
+            <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 justify-center lg:justify-start hero-animate hero-animate-delay-3">
+              <Link href="/register" className="px-8 py-3.5 bg-white text-blue-600 font-bold rounded-full shadow-xl shadow-black/10 hover:shadow-black/20 hover:scale-105 transition-all text-sm flex items-center gap-2">Start for Free <ArrowRight className="w-4 h-4"/></Link>
+              <button className="px-6 py-3.5 border border-white/30 text-white font-semibold rounded-full hover:bg-white/10 backdrop-blur-sm text-sm flex items-center gap-2 transition-all"><Play className="w-4 h-4"/>Watch Demo</button>
             </div>
-            <div className="flex items-center gap-3 mt-8 justify-center lg:justify-start">
-              <div className="flex -space-x-2">{['bg-blue-400','bg-emerald-400','bg-violet-400','bg-amber-400','bg-rose-400'].map((c,i)=><div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold`}>{String.fromCharCode(65+i)}</div>)}</div>
-              <div><div className="flex gap-0.5">{Array.from({length:5}).map((_,i)=><Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400"/>)}</div><p className="text-[11px] text-slate-400 mt-0.5">Join 2,000+ professionals · 4.9/5</p></div>
+            <div className="flex items-center gap-3 mt-8 justify-center lg:justify-start hero-animate hero-animate-delay-4">
+              <div className="flex -space-x-2">{['bg-blue-300','bg-emerald-300','bg-violet-300','bg-amber-300','bg-rose-300'].map((c,i)=><div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white/50 flex items-center justify-center text-white text-[10px] font-bold shadow-lg`}>{String.fromCharCode(65+i)}</div>)}</div>
+              <div><div className="flex gap-0.5">{Array.from({length:5}).map((_,i)=><Star key={i} className="w-3.5 h-3.5 fill-amber-300 text-amber-300"/>)}</div><p className="text-[11px] text-blue-200/70 mt-0.5">Join 2,000+ professionals · 4.9/5</p></div>
             </div>
           </div>
           {/* Dashboard Mockup */}
-          <div className="flex-1 relative max-w-lg w-full">
-            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/60 p-4 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+          <div className="flex-1 relative max-w-lg w-full hero-animate hero-animate-delay-5">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/20 border border-white/20 p-4 transform rotate-1 hover:rotate-0 transition-transform duration-500">
               <div className="flex gap-1.5 mb-3">{['bg-red-400','bg-amber-400','bg-emerald-400'].map((c,i)=><div key={i} className={`w-2.5 h-2.5 ${c} rounded-full`}/>)}</div>
-              <div className="grid grid-cols-4 gap-2 mb-3">{['New','Applied','Interview','Offer'].map((s,i)=><div key={s} className="text-center"><p className="text-[9px] font-bold text-slate-400 uppercase mb-1">{s}</p><div className={`h-1 rounded-full ${['bg-blue-400','bg-amber-400','bg-violet-400','bg-emerald-400'][i]}`}/></div>)}</div>
-              {[{c:'Google',t:'Senior React Dev',s:'bg-blue-50 text-blue-600'},{c:'Microsoft',t:'Full Stack Engineer',s:'bg-amber-50 text-amber-600'},{c:'Stripe',t:'Frontend Developer',s:'bg-violet-50 text-violet-600'}].map((j,i)=>(
-                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/50 mb-1.5 hover:bg-slate-100/80 transition-colors">
-                  <div className="flex items-center gap-2.5"><div className="w-8 h-8 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-500">{j.c[0]}</div><div><p className="text-xs font-semibold text-[#1e293b]">{j.t}</p><p className="text-[10px] text-slate-400">{j.c}</p></div></div>
+              <div className="grid grid-cols-4 gap-2 mb-3">{['New','Applied','Interview','Offer'].map((s,i)=><div key={s} className="text-center"><p className="text-[9px] font-bold text-blue-200/60 uppercase mb-1">{s}</p><div className={`h-1 rounded-full ${['bg-blue-400','bg-amber-400','bg-violet-400','bg-emerald-400'][i]}`}/></div>)}</div>
+              {[{c:'Google',t:'Senior React Dev',s:'bg-blue-500/20 text-blue-200'},{c:'Microsoft',t:'Full Stack Engineer',s:'bg-amber-500/20 text-amber-200'},{c:'Stripe',t:'Frontend Developer',s:'bg-violet-500/20 text-violet-200'}].map((j,i)=>(
+                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 mb-1.5 hover:bg-white/10 transition-colors">
+                  <div className="flex items-center gap-2.5"><div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-[10px] font-bold text-blue-200">{j.c[0]}</div><div><p className="text-xs font-semibold text-white">{j.t}</p><p className="text-[10px] text-blue-300/60">{j.c}</p></div></div>
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${j.s}`}>{['New','Applied','Interview'][i]}</span>
                 </div>
               ))}
             </div>
             {/* Floating cards */}
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg border px-3 py-2 animate-bounce" style={{animationDuration:'3s'}}><p className="text-[10px] font-semibold text-emerald-600">✓ New lead added: Google</p></div>
-            <div className="absolute -bottom-2 -left-4 bg-white rounded-xl shadow-lg border px-3 py-2 animate-pulse"><p className="text-[10px] font-semibold text-blue-600">📧 Email sent to Microsoft</p></div>
+            <div className="absolute -top-4 -right-4 bg-white/15 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 px-3 py-2 animate-float"><p className="text-[10px] font-semibold text-emerald-300">✓ New lead added: Google</p></div>
+            <div className="absolute -bottom-2 -left-4 bg-white/15 backdrop-blur-xl rounded-xl shadow-lg border border-white/20 px-3 py-2 animate-float-slow"><p className="text-[10px] font-semibold text-blue-200">📧 Email sent to Microsoft</p></div>
           </div>
         </div>
       </section>
