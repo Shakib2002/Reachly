@@ -7,6 +7,7 @@ import { useFollowUps } from '@/hooks/useFollowUps';
 import Link from 'next/link';
 import WelcomeOnboarding from '@/components/onboarding/WelcomeOnboarding';
 import GuidedTour from '@/components/onboarding/GuidedTour';
+import Icon3D, { Icon3DSoft } from '@/components/ui/Icon3D';
 import {
   TrendingUp,
   Send,
@@ -143,36 +144,28 @@ export default function DashboardPage() {
       value: stats.totalLeads,
       change: `+${stats.weeklyChange}%`,
       icon: TrendingUp,
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600',
-      iconBg: 'from-blue-500 to-blue-600',
+      variant: 'blue' as const,
     },
     {
       title: 'Applied',
       value: stats.applied,
       change: stats.applied > 0 ? `${Math.round((stats.applied / Math.max(stats.totalLeads, 1)) * 100)}%` : '0%',
       icon: Send,
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
-      iconBg: 'from-amber-500 to-amber-600',
+      variant: 'amber' as const,
     },
     {
       title: 'In Progress',
       value: stats.inProgress,
       change: stats.inProgress > 0 ? `${Math.round((stats.inProgress / Math.max(stats.totalLeads, 1)) * 100)}%` : '0%',
       icon: Clock,
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600',
-      iconBg: 'from-purple-500 to-purple-600',
+      variant: 'purple' as const,
     },
     {
       title: 'Converted',
       value: stats.converted,
       change: stats.converted > 0 ? `${Math.round((stats.converted / Math.max(stats.totalLeads, 1)) * 100)}%` : '0%',
       icon: CheckCircle,
-      bgColor: 'bg-emerald-50',
-      textColor: 'text-emerald-600',
-      iconBg: 'from-emerald-500 to-emerald-600',
+      variant: 'emerald' as const,
     },
   ];
 
@@ -250,11 +243,7 @@ export default function DashboardPage() {
                 className="bg-white rounded-2xl border border-[#e2e8f0] p-5 hover:shadow-md hover:border-slate-300/80 transition-all duration-200 group"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <div
-                    className={`w-10 h-10 ${stat.bgColor} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}
-                  >
-                    <stat.icon className={`w-5 h-5 ${stat.textColor}`} />
-                  </div>
+                  <Icon3D icon={stat.icon} size="sm" variant={stat.variant} />
                   {(() => {
                     const _isPercent = stat.change.includes('%');
                     const numVal = parseFloat(stat.change.replace(/[^\d.-]/g, ''));
@@ -289,10 +278,10 @@ export default function DashboardPage() {
           </h3>
           <div className="space-y-1.5">
             {[
-              { label: 'Add New Lead', icon: Plus, onClick: () => setAddLeadModalOpen(true), color: 'group-hover:bg-blue-50 group-hover:text-blue-500' },
-              { label: 'Search Jobs', icon: Search, href: '/discover', color: 'group-hover:bg-emerald-50 group-hover:text-emerald-500' },
-              { label: 'Send Outreach', icon: Mail, href: '/outreach', color: 'group-hover:bg-violet-50 group-hover:text-violet-500' },
-              { label: 'View Analytics', icon: Briefcase, href: '/analytics', color: 'group-hover:bg-amber-50 group-hover:text-amber-500' },
+              { label: 'Add New Lead', icon: Plus, onClick: () => setAddLeadModalOpen(true), variant: 'blue' as const },
+              { label: 'Search Jobs', icon: Search, href: '/discover', variant: 'emerald' as const },
+              { label: 'Send Outreach', icon: Mail, href: '/outreach', variant: 'violet' as const },
+              { label: 'View Analytics', icon: Briefcase, href: '/analytics', variant: 'amber' as const },
             ].map((action) =>
               action.href ? (
                 <Link
@@ -300,9 +289,7 @@ export default function DashboardPage() {
                   href={action.href}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-[#1e293b] hover:bg-slate-50 transition-all duration-200 group"
                 >
-                  <div className={`w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center transition-colors ${action.color}`}>
-                    <action.icon className="w-4 h-4 text-slate-500 group-hover:text-inherit transition-colors" />
-                  </div>
+                  <Icon3DSoft icon={action.icon} size="xs" variant={action.variant} animate={false} />
                   <span>{action.label}</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
                 </Link>
@@ -312,9 +299,7 @@ export default function DashboardPage() {
                   onClick={action.onClick}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-[#1e293b] hover:bg-slate-50 transition-all duration-200 group w-full"
                 >
-                  <div className={`w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center transition-colors ${action.color}`}>
-                    <action.icon className="w-4 h-4 text-slate-500 group-hover:text-inherit transition-colors" />
-                  </div>
+                  <Icon3DSoft icon={action.icon} size="xs" variant={action.variant} animate={false} />
                   <span>{action.label}</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300 group-hover:text-slate-400 group-hover:translate-x-0.5 transition-all" />
                 </button>

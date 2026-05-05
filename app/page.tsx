@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Icon3D from '@/components/ui/Icon3D';
 import { Search, BarChart3, Mail, Kanban, ChevronDown, Play, Star, Menu, Check, Zap, ArrowRight } from 'lucide-react';
 
 const NAV = ['Features','Pricing','About'];
@@ -149,8 +150,8 @@ export default function LandingPage() {
                   <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 mt-4 hover:gap-3 transition-all">Try it free <ArrowRight className="w-4 h-4"/></Link>
                 </div>
                 <div className="flex-1 w-full">
-                  <div className="glass-card rounded-2xl p-5 h-56 flex items-center justify-center glow-blue">
-                    <f.icon className="w-16 h-16 text-blue-200/60"/>
+                  <div className="glass-card rounded-2xl p-8 h-56 flex items-center justify-center glow-blue">
+                    <Icon3D icon={f.icon} size="xl" variant={(['blue','indigo','violet','cyan'] as const)[i]} />
                   </div>
                 </div>
               </div>
@@ -164,11 +165,11 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-extrabold text-[#1e293b] mb-12 font-display reveal">Get started in 3 simple steps</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[{n:'01',icon:Search,t:'Search & Discover',d:'Search for jobs or leads using our powerful search. Filter by location, skills, salary.'},{n:'02',icon:Zap,t:'Save & Organize',d:'Save opportunities to your pipeline with one click. Organize with drag and drop.'},{n:'03',icon:Mail,t:'Reach Out & Close',d:'Send AI-powered personalized emails. Follow up automatically. Land the opportunity.'}].map(s=>(
-              <div key={s.n} className="text-center group">
+            {[{n:'01',icon:Search,t:'Search & Discover',d:'Search for jobs or leads using our powerful search. Filter by location, skills, salary.',v:'blue' as const},{n:'02',icon:Zap,t:'Save & Organize',d:'Save opportunities to your pipeline with one click. Organize with drag and drop.',v:'indigo' as const},{n:'03',icon:Mail,t:'Reach Out & Close',d:'Send AI-powered personalized emails. Follow up automatically. Land the opportunity.',v:'emerald' as const}].map(s=>(
+              <div key={s.n} className="text-center group reveal">
                 <span className="text-5xl font-extrabold text-blue-100 group-hover:text-blue-200 transition-colors">{s.n}</span>
-                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mt-3 mb-4 group-hover:bg-blue-100 transition-colors"><s.icon className="w-6 h-6 text-blue-500"/></div>
-                <h3 className="text-base font-bold text-[#1e293b] mb-2">{s.t}</h3>
+                <div className="flex justify-center mt-3 mb-4"><Icon3D icon={s.icon} size="lg" variant={s.v} /></div>
+                <h3 className="text-base font-bold text-[#1e293b] mb-2 font-display">{s.t}</h3>
                 <p className="text-sm text-slate-400">{s.d}</p>
               </div>
             ))}
