@@ -17,7 +17,9 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex">
+    <div className="min-h-screen bg-dashboard bg-dots bg-noise flex">
+      {/* Accent orb */}
+      <div className="bg-orb-accent" />
       <Toaster
         position="top-right"
         toastOptions={{

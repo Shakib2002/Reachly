@@ -49,7 +49,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white bg-dots bg-noise overflow-x-hidden">
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-slate-100' : ''}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
@@ -122,7 +122,7 @@ export default function LandingPage() {
       </section>
 
       {/* Problem */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 gradient-mesh">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-extrabold text-[#1e293b] mb-10 font-display reveal">Sound familiar?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -137,7 +137,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-6 bg-gradient-to-b from-white to-slate-50">
+      <section id="features" className="py-20 px-6 bg-gradient-to-b from-white to-slate-50/80 bg-dots">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 reveal"><h2 className="text-3xl font-extrabold text-[#1e293b] font-display">Everything you need, in one place</h2><p className="text-slate-400 mt-2">Four powerful modules working together seamlessly</p></div>
           <div className="space-y-20">
@@ -161,7 +161,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 gradient-mesh">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-extrabold text-[#1e293b] mb-12 font-display reveal">Get started in 3 simple steps</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -178,7 +178,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 px-6 bg-slate-50">
+      <section className="py-20 px-6 bg-slate-50/80 bg-dots">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-extrabold text-[#1e293b] text-center mb-12 font-display reveal">What our users say</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -213,7 +213,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 px-6 bg-slate-50">
+      <section className="py-20 px-6 gradient-mesh">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-extrabold text-[#1e293b] text-center mb-10">Frequently Asked Questions</h2>
           <div className="space-y-3">{FAQ.map((f,i)=>(
