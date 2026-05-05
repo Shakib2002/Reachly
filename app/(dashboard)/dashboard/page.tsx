@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLeadStore } from '@/lib/store';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import Link from 'next/link';
+import WelcomeOnboarding from '@/components/onboarding/WelcomeOnboarding';
+import GuidedTour from '@/components/onboarding/GuidedTour';
 import {
   TrendingUp,
   Send,
@@ -123,7 +125,9 @@ export default function DashboardPage() {
   } = useLeadStore();
   const { followUps, loading: _fuLoading, getUpcomingFollowUps, cancelFollowUp, sendFollowUpNow } = useFollowUps();
 
-  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there';
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] 
+    || user?.email?.split('@')[0] 
+    || 'there';
 
   useEffect(() => {
     fetchLeads();
@@ -192,7 +196,7 @@ export default function DashboardPage() {
             Welcome back, {firstName}! 👋
           </h1>
           <p className="text-blue-100/80 mt-2 text-sm lg:text-base max-w-xl">
-            Track your job applications, manage leads, and close more opportunities — all from one place.
+            Find leads, send personalized emails, and close deals — your complete outreach toolkit. Start by discovering prospects below! 👇
           </p>
           <div className="flex flex-wrap gap-3 mt-5">
             <button
@@ -219,6 +223,10 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding — Welcome Modal + Getting Started Checklist */}
+      <WelcomeOnboarding userName={firstName} />
+      <GuidedTour />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

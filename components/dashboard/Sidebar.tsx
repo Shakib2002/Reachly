@@ -16,14 +16,15 @@ import {
   Sparkles,
   Crown,
 } from 'lucide-react';
+import { TourTrigger } from '@/components/onboarding/GuidedTour';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Discover', href: '/discover', icon: Search },
-  { name: 'CRM Pipeline', href: '/crm', icon: Kanban },
-  { name: 'Outreach', href: '/outreach', icon: Mail },
-  { name: 'Analytics', href: '/analytics', icon: BarChart2 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, id: 'nav-dashboard' },
+  { name: 'Discover', href: '/discover', icon: Search, id: 'nav-discover' },
+  { name: 'CRM Pipeline', href: '/crm', icon: Kanban, id: 'nav-crm' },
+  { name: 'Outreach', href: '/outreach', icon: Mail, id: 'nav-outreach' },
+  { name: 'Analytics', href: '/analytics', icon: BarChart2, id: 'nav-analytics' },
+  { name: 'Settings', href: '/settings', icon: Settings, id: 'nav-settings' },
 ];
 
 interface SidebarProps {
@@ -78,6 +79,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <Link
               key={item.name}
               href={item.href}
+              id={item.id}
               title={collapsed ? item.name : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
                 active
@@ -101,6 +103,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Bottom Section */}
       <div className={`mt-auto border-t border-white/[0.08] ${collapsed ? 'px-2' : 'px-3'} py-4 space-y-3`}>
+        {/* Take Tour */}
+        {!collapsed && <TourTrigger />}
+
         {/* Collapse toggle */}
         <button
           onClick={onToggle}
