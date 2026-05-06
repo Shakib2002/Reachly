@@ -15,6 +15,7 @@ const mapSearchSchema = z.object({
   websiteFilter: z.enum(['none', 'has', 'any']).default('any'),
   requirePhone: z.boolean().default(false),
   onlyOpen: z.boolean().default(false),
+  painKeywords: z.array(z.string()).default([]),
 });
 
 /**
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen } = parsed.data;
+    const { query, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen, painKeywords } = parsed.data;
 
     const apiToken = process.env.APIFY_API_TOKEN;
     if (!apiToken) {
@@ -44,7 +45,8 @@ export async function POST(request: NextRequest) {
 
     // Use Apify run-sync-get-dataset-items — blocks until results are ready
     // timeout=300 gives Apify up to 5 min to complete the scrape
-    const crawlLimit = Math.min(maxResults + 5, 30); // Keep small for speed
+    // Crawl slightly more than requested to account for post-filter losses
+    const crawlLimit = maxResults + 10;
 
     const runRes = await fetch(
       `https://api.apify.com/v2/acts/2Mdma1N6Fd0y3QEjR/run-sync-get-dataset-items?token=${apiToken}&timeout=300`,
@@ -134,8 +136,8 @@ export async function POST(request: NextRequest) {
         imageUrl: biz.imageUrl || null,
         description: biz.description || null,
         openingHours: biz.openingHours || [],
-        leadScore: calcLeadScore(biz),
-        hasPainKeywords: false,
+        leadScore: calcLeadScore(biz, painKeywords),
+        hasPainKeywords: checkPainKeywords(biz, painKeywords),
         websiteMissing: !biz.website,
       }))
       .sort((a, b) => b.leadScore - a.leadScore)
@@ -167,7 +169,7 @@ export async function POST(request: NextRequest) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function calcLeadScore(biz: any): number {
+function calcLeadScore(biz: any, painKeywords: string[] = []): number {
   let score = 40;
 
   const rating = biz.totalScore || 0;
@@ -189,5 +191,20 @@ function calcLeadScore(biz: any): number {
 
   if (!biz.permanentlyClosed && !biz.temporarilyClosed) score += 5;
 
+  // Pain keyword bonus — businesses with negative reviews are easier to pitch
+  if (checkPainKeywords(biz, painKeywords)) score += 10;
+
   return Math.min(score, 100);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkPainKeywords(biz: any, painKeywords: string[] = []): boolean {
+  if (painKeywords.length === 0) return false;
+  // Check description and any available review text
+  const searchText = [
+    biz.description || '',
+    biz.reviewsText || '',
+    ...(Array.isArray(biz.reviews) ? biz.reviews.map((r: { text?: string }) => r.text || '') : []),
+  ].join(' ').toLowerCase();
+  return painKeywords.some(kw => searchText.includes(kw.toLowerCase()));
 }

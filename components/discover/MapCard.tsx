@@ -258,7 +258,7 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
             <a href={`mailto:${foundEmail}`} className="text-xs text-emerald-700 font-mono truncate hover:text-emerald-800 flex-1">
               {foundEmail}
             </a>
-            <span className="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-600 rounded font-semibold">Verified</span>
+            <span className="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-600 rounded font-semibold">Found</span>
           </div>
         )}
 

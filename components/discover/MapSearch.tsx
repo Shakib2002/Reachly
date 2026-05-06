@@ -89,6 +89,7 @@ export default function MapSearch() {
           minRating, maxRating,
           minReviews, maxReviews,
           websiteFilter, requirePhone, onlyOpen,
+          painKeywords: selectedPainKw,
         }),
       });
 
@@ -115,7 +116,7 @@ export default function MapSearch() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen]);
+  }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen, selectedPainKw]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addToCRM = async (biz: MapBusiness & { enrichedEmail?: string }) => {

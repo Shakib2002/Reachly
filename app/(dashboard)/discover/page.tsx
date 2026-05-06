@@ -37,6 +37,17 @@ const MAX_RESULTS_OPTIONS = [25, 50, 100];
 
 type Tab = 'jobs' | 'leads';
 
+interface SearchHistoryEntry {
+  id: string;
+  query: string;
+  company: string;
+  location: string;
+  jobType: string;
+  resultsCount: number;
+  source: 'job' | 'map';
+  timestamp: string;
+}
+
 export default function DiscoverPage() {
   const { addLead } = useLeadStore();
   const [tab, setTab] = useState<Tab>('jobs');
@@ -63,16 +74,6 @@ export default function DiscoverPage() {
   const [confirmSaving, setConfirmSaving] = useState(false);
 
   // Search history — stores full search details
-  interface SearchHistoryEntry {
-    id: string;
-    query: string;
-    company: string;
-    location: string;
-    jobType: string;
-    resultsCount: number;
-    source: 'job' | 'map';
-    timestamp: string;
-  }
   const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 

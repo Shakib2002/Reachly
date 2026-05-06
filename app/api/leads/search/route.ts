@@ -92,16 +92,21 @@ export async function POST(request: NextRequest) {
       const domain = extractDomain(job.employer_website || '');
       const department = guessDepartment(job.job_title);
 
-      // Parse benefits into array (can be string, array, or object)
+      // Parse benefits into array (can be string, array, object, or null)
       const benefits: string[] = [];
       if (job.job_benefits) {
         if (typeof job.job_benefits === 'string') {
-          benefits.push(...job.job_benefits.split(/\s+/).map(b =>
-            b.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-          ));
+          benefits.push(...job.job_benefits.split(/[,;\n]+/).map(b =>
+            b.trim().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+          ).filter(Boolean));
         } else if (Array.isArray(job.job_benefits)) {
           benefits.push(...(job.job_benefits as string[]).map(b =>
             String(b).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+          ));
+        } else if (typeof job.job_benefits === 'object') {
+          // Handle object format like { health: true, dental: true }
+          benefits.push(...Object.keys(job.job_benefits as Record<string, unknown>).map(b =>
+            b.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
           ));
         }
       }
@@ -157,11 +162,10 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // De-duplicate by company
-    const unique = leads.filter((lead, idx, arr) => {
-      if (!company) return true;
-      return arr.findIndex(l => l.company === lead.company) === idx;
-    });
+    // De-duplicate by company name (always run)
+    const unique = leads.filter((lead, idx, arr) =>
+      arr.findIndex(l => l.company === lead.company) === idx
+    );
 
     // Limit to requested maxResults
     const limited = unique.slice(0, maxResults);
