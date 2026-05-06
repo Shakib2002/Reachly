@@ -4,7 +4,8 @@ import { useState } from 'react';
 import {
   Star, Phone, Globe, MapPin, ExternalLink,
   CheckCircle, Loader2, UserPlus, ImageOff,
-  AlertCircle, TrendingUp,
+  AlertCircle, TrendingUp, MessageCircle, Mail,
+  Search, Info,
 } from 'lucide-react';
 
 export interface MapBusiness {
@@ -47,7 +48,8 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function ScoreBadge({ score }: { score: number }) {
+function ScoreBadge({ score, biz }: { score: number; biz: MapBusiness }) {
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const color =
     score >= 80 ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
     score >= 65 ? 'bg-blue-50 text-blue-600 border-blue-200' :
@@ -56,12 +58,51 @@ function ScoreBadge({ score }: { score: number }) {
 
   const label = score >= 80 ? 'Hot Lead 🔥' : score >= 65 ? 'Good Lead' : score >= 50 ? 'Warm' : 'Cold';
 
+  // Score breakdown logic (mirrors backend)
+  const rating = biz.rating || 0;
+  const rev = biz.reviewsCount || 0;
+  const breakdown = [
+    { label: 'Base', pts: 40, icon: '🏢' },
+    { label: 'Rating sweet spot', pts: rating >= 3.8 && rating <= 4.2 ? 20 : rating >= 3.5 && rating <= 4.3 ? 12 : 0, icon: '⭐' },
+    { label: 'Review count', pts: rev >= 20 && rev <= 100 ? 15 : rev >= 15 && rev <= 120 ? 8 : 0, icon: '🧾' },
+    { label: 'No website', pts: !biz.website ? 12 : 3, icon: '🎯' },
+    { label: 'Has phone', pts: biz.phone ? 8 : 0, icon: '📞' },
+    { label: 'Few photos', pts: biz.imagesCount < 10 ? 8 : biz.imagesCount < 25 ? 4 : 0, icon: '📸' },
+    { label: 'Active business', pts: biz.isOpen ? 5 : 0, icon: '✅' },
+  ].filter(b => b.pts > 0);
+
   return (
-    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold border ${color}`}>
-      <TrendingUp className="w-3 h-3" />
-      <span>{score}</span>
-      <span className="opacity-70">·</span>
-      <span>{label}</span>
+    <div className="relative">
+      <button
+        onMouseEnter={() => setShowBreakdown(true)}
+        onMouseLeave={() => setShowBreakdown(false)}
+        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold border ${color} cursor-help`}
+      >
+        <TrendingUp className="w-3 h-3" />
+        <span>{score}</span>
+        <span className="opacity-70">·</span>
+        <span>{label}</span>
+        <Info className="w-2.5 h-2.5 opacity-50" />
+      </button>
+
+      {/* Score Breakdown Tooltip */}
+      {showBreakdown && (
+        <div className="absolute top-full right-0 mt-1.5 w-52 bg-white rounded-xl border border-slate-200 shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Score Breakdown</p>
+          <div className="space-y-1">
+            {breakdown.map((b, i) => (
+              <div key={i} className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-600">{b.icon} {b.label}</span>
+                <span className="font-bold text-emerald-600">+{b.pts}</span>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-slate-100 mt-2 pt-1.5 flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-700">Total</span>
+            <span className="font-black text-blue-600">{score}/100</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -69,12 +110,38 @@ function ScoreBadge({ score }: { score: number }) {
 export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardProps) {
   const [saving, setSaving] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [foundEmail, setFoundEmail] = useState<string | null>(null);
 
   const handleAdd = async () => {
     setSaving(true);
     await onAddToCRM(biz);
     setSaving(false);
   };
+
+  const handleFindEmail = async () => {
+    if (!biz.website) { return; }
+    setFindingEmail(true);
+    try {
+      const domain = biz.website.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+      const res = await fetch('/api/leads/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain, company: biz.name }),
+      });
+      const data = await res.json();
+      if (data.contacts?.length > 0 && data.contacts[0].email) {
+        setFoundEmail(data.contacts[0].email);
+      } else {
+        setFoundEmail('not-found');
+      }
+    } catch {
+      setFoundEmail('not-found');
+    }
+    setFindingEmail(false);
+  };
+
+  const whatsappNumber = biz.phone?.replace(/[^0-9+]/g, '').replace(/^\+/, '');
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 hover:shadow-md hover:border-blue-200 transition-all duration-200 group overflow-hidden">
@@ -92,12 +159,11 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
             <ImageOff className="w-8 h-8 text-slate-300" />
           </div>
         )}
-        {/* Overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Score badge top-right */}
         <div className="absolute top-2 right-2">
-          <ScoreBadge score={biz.leadScore} />
+          <ScoreBadge score={biz.leadScore} biz={biz} />
         </div>
 
         {/* Status badge top-left */}
@@ -147,6 +213,14 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
             <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
             <span className="text-xs text-slate-500 line-clamp-1">{biz.address}</span>
           </div>
+
+          {/* Found email */}
+          {foundEmail && foundEmail !== 'not-found' && (
+            <div className="flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+              <a href={`mailto:${foundEmail}`} className="text-xs text-emerald-600 font-semibold hover:text-emerald-700 truncate">{foundEmail}</a>
+            </div>
+          )}
         </div>
 
         {/* Tags */}
@@ -171,31 +245,61 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
           </span>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+        {/* Quick Actions Row */}
+        <div className="flex items-center gap-1.5 pt-1">
+          {biz.phone && (
+            <a href={`tel:${biz.phone}`} className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors" title="Call">
+              <Phone className="w-3.5 h-3.5" />
+            </a>
+          )}
+          {whatsappNumber && (
+            <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-500 hover:bg-emerald-100 transition-colors" title="WhatsApp">
+              <MessageCircle className="w-3.5 h-3.5" />
+            </a>
+          )}
+          {biz.website && (
+            <a href={biz.website} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-colors" title="Visit Website">
+              <Globe className="w-3.5 h-3.5" />
+            </a>
+          )}
+          {biz.website && !foundEmail && (
+            <button
+              onClick={handleFindEmail}
+              disabled={findingEmail}
+              className="p-1.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-500 hover:bg-purple-100 transition-colors disabled:opacity-50"
+              title="Find Email"
+            >
+              {findingEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+            </button>
+          )}
+          {foundEmail === 'not-found' && (
+            <span className="text-[10px] text-slate-400 ml-1">No email found</span>
+          )}
+          <a href={biz.mapsUrl} target="_blank" rel="noopener noreferrer"
+            className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-blue-500 hover:bg-blue-50 hover:border-blue-200 transition-colors ml-auto"
+            title="Open in Google Maps">
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        {/* CRM Action */}
+        <div className="pt-1 border-t border-slate-100">
           {isSaved ? (
-            <button disabled className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
-              <CheckCircle className="w-3.5 h-3.5" /> Added to CRM
+            <button disabled className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
+              <CheckCircle className="w-3.5 h-3.5" /> Saved to CRM
             </button>
           ) : (
             <button
               onClick={handleAdd}
               disabled={saving}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
               Add to CRM
             </button>
           )}
-          <a
-            href={biz.mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-blue-500 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-            title="Open in Google Maps"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </a>
         </div>
       </div>
     </div>

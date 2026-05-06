@@ -141,12 +141,14 @@ export default function MapSearch() {
 
   const addToCRM = async (biz: MapBusiness) => {
     await addLead({
-      title: biz.category || 'Business',
-      company: biz.name,
+      title: biz.name,
+      company: biz.category || 'Local Business',
       location: biz.address,
       source: 'Google Maps',
       status: 'new',
-      notes: `Rating: ${biz.rating} (${biz.reviewsCount} reviews) | Lead Score: ${biz.leadScore}/100${biz.phone ? ` | Phone: ${biz.phone}` : ''}${biz.website ? ` | Website: ${biz.website}` : ' | No Website'}`,
+      phone: biz.phone || null,
+      email: null,
+      notes: `⭐ ${biz.rating}/5 (${biz.reviewsCount} reviews) | Score: ${biz.leadScore}/100${biz.website ? ` | 🌐 ${biz.website}` : ' | 🎯 No Website'} | 📍 ${biz.city} | Maps: ${biz.mapsUrl}`,
     });
     setSavedIds(prev => new Set([...Array.from(prev), biz.id]));
     toast.success('Added to CRM!');
