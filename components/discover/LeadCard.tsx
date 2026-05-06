@@ -5,6 +5,7 @@ import {
   ExternalLink, Mail, CheckCircle, Loader2,
   UserPlus, MapPin, Briefcase, Search, Link2, Phone,
   Shield, ShieldCheck, ShieldAlert, Globe, DollarSign,
+  Clock, ChevronDown, ChevronUp, Award, FileText, Newspaper,
 } from 'lucide-react';
 
 export interface LeadResult {
@@ -24,7 +25,17 @@ export interface LeadResult {
     title: string;
     applyLink: string;
     postedAt: string;
+    postedAgo?: string;
     type: string;
+    description?: string;
+    publisher?: string;
+    googleLink?: string;
+    applyDirect?: boolean;
+    benefits?: string[];
+    highlights?: {
+      qualifications: string[];
+      responsibilities: string[];
+    };
   } | null;
   salary?: {
     min: number | null;
@@ -97,6 +108,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
   const [saving, setSaving] = useState(false);
   const [enriching, setEnriching] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [enrichedData, setEnrichedData] = useState<{
     email: string | null;
     confidence: number;
@@ -229,32 +241,138 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
 
       {/* Job Posting info (REAL data from JSearch) */}
       {lead.jobPosting && (
-        <div className="mt-3 px-3 py-2 bg-slate-50 rounded-lg flex items-start gap-2">
-          <Briefcase className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-600 font-medium truncate">{lead.jobPosting.title}</p>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span className="text-[10px] text-slate-400">
-                {lead.jobPosting.type?.replace('_', ' ')} · Posted {formatDate(lead.jobPosting.postedAt)}
-              </span>
-              {lead.isRemote && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-violet-50 text-violet-600 rounded font-semibold border border-violet-100">🌍 Remote</span>
-              )}
-              {lead.salary && (lead.salary.min || lead.salary.max) && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded font-semibold border border-emerald-100 flex items-center gap-0.5">
-                  <DollarSign className="w-2.5 h-2.5" />
-                  {lead.salary.min ? `${Math.round(lead.salary.min / 1000)}k` : '?'}
-                  {' - '}
-                  {lead.salary.max ? `${Math.round(lead.salary.max / 1000)}k` : '?'}
-                  /{lead.salary.period?.toLowerCase() === 'year' ? 'yr' : lead.salary.period?.toLowerCase()}
-                </span>
-              )}
+        <div className="mt-3">
+          <div className="px-3 py-2 bg-slate-50 rounded-lg">
+            {/* Row 1: Title + View */}
+            <div className="flex items-start gap-2">
+              <Briefcase className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-600 font-medium truncate">{lead.jobPosting.title}</p>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  {/* Posted time */}
+                  <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
+                    <Clock className="w-2.5 h-2.5" />
+                    {lead.jobPosting.postedAgo || formatDate(lead.jobPosting.postedAt)}
+                  </span>
+                  {/* Job type */}
+                  <span className="text-[10px] text-slate-400">
+                    · {lead.jobPosting.type?.replace('_', ' ')}
+                  </span>
+                  {/* Publisher badge */}
+                  {lead.jobPosting.publisher && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded font-semibold border border-blue-100 flex items-center gap-0.5">
+                      <Newspaper className="w-2.5 h-2.5" />
+                      {lead.jobPosting.publisher}
+                    </span>
+                  )}
+                  {/* Remote badge */}
+                  {lead.isRemote && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-violet-50 text-violet-600 rounded font-semibold border border-violet-100">🌍 Remote</span>
+                  )}
+                  {/* Salary badge */}
+                  {lead.salary && (lead.salary.min || lead.salary.max) && (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded font-semibold border border-emerald-100 flex items-center gap-0.5">
+                      <DollarSign className="w-2.5 h-2.5" />
+                      {lead.salary.min ? `${Math.round(lead.salary.min / 1000)}k` : '?'}
+                      {' - '}
+                      {lead.salary.max ? `${Math.round(lead.salary.max / 1000)}k` : '?'}
+                      /{lead.salary.period?.toLowerCase() === 'year' ? 'yr' : lead.salary.period?.toLowerCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <a href={lead.jobPosting.applyLink} target="_blank" rel="noopener noreferrer"
+                  className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold flex items-center gap-0.5">
+                  View <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
+
+            {/* Benefits badges */}
+            {lead.jobPosting.benefits && lead.jobPosting.benefits.length > 0 && (
+              <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                <Award className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                {lead.jobPosting.benefits.slice(0, 4).map((b, i) => (
+                  <span key={i} className="text-[9px] px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded font-medium border border-amber-100">
+                    {b}
+                  </span>
+                ))}
+                {lead.jobPosting.benefits.length > 4 && (
+                  <span className="text-[9px] text-slate-400">+{lead.jobPosting.benefits.length - 4} more</span>
+                )}
+              </div>
+            )}
+
+            {/* Expand/Collapse button */}
+            {lead.jobPosting.description && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-blue-500 hover:text-blue-700 transition-colors w-full"
+              >
+                <FileText className="w-3 h-3" />
+                {expanded ? 'Hide Details' : 'View Description & Requirements'}
+                {expanded ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+              </button>
+            )}
           </div>
-          <a href={lead.jobPosting.applyLink} target="_blank" rel="noopener noreferrer"
-            className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold flex items-center gap-0.5 flex-shrink-0">
-            View <ExternalLink className="w-3 h-3" />
-          </a>
+
+          {/* ─── Expanded Detail Panel ─── */}
+          {expanded && lead.jobPosting.description && (
+            <div className="mt-2 border border-slate-200 rounded-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              {/* Description */}
+              <div className="px-3 py-2.5 bg-white">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <FileText className="w-3 h-3" /> Job Description
+                </h4>
+                <div className="text-xs text-slate-600 leading-relaxed max-h-48 overflow-y-auto pr-1 whitespace-pre-line">
+                  {lead.jobPosting.description.slice(0, 2000)}
+                  {lead.jobPosting.description.length > 2000 && '...'}
+                </div>
+              </div>
+
+              {/* Qualifications */}
+              {lead.jobPosting.highlights?.qualifications && lead.jobPosting.highlights.qualifications.length > 0 && (
+                <div className="px-3 py-2.5 bg-blue-50/50 border-t border-slate-100">
+                  <h4 className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1.5">✅ Requirements</h4>
+                  <ul className="space-y-1">
+                    {lead.jobPosting.highlights.qualifications.slice(0, 8).map((q, i) => (
+                      <li key={i} className="text-[11px] text-slate-600 flex items-start gap-1.5">
+                        <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+                        <span>{q}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Responsibilities */}
+              {lead.jobPosting.highlights?.responsibilities && lead.jobPosting.highlights.responsibilities.length > 0 && (
+                <div className="px-3 py-2.5 bg-emerald-50/30 border-t border-slate-100">
+                  <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1.5">📋 Responsibilities</h4>
+                  <ul className="space-y-1">
+                    {lead.jobPosting.highlights.responsibilities.slice(0, 8).map((r, i) => (
+                      <li key={i} className="text-[11px] text-slate-600 flex items-start gap-1.5">
+                        <span className="text-emerald-400 mt-0.5 flex-shrink-0">•</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Apply bar */}
+              <div className="px-3 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400">
+                  {lead.jobPosting.applyDirect ? '✅ Direct Apply' : '🔗 External Apply'}
+                </span>
+                <a href={lead.jobPosting.applyLink} target="_blank" rel="noopener noreferrer"
+                  className="text-[11px] font-bold text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition-colors flex items-center gap-1">
+                  Apply Now <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -14,12 +14,19 @@ interface JSearchJob {
   job_description: string;
   employer_logo: string | null;
   job_posted_at_datetime_utc: string;
+  job_posted_at: string;
   job_is_remote: boolean;
   job_employment_type: string;
   job_min_salary: number | null;
   job_max_salary: number | null;
   job_salary_currency: string | null;
   job_salary_period: string | null;
+  job_publisher: string | null;
+  job_benefits: unknown;
+  job_highlights: Record<string, string[]> | null;
+  job_google_link: string | null;
+  job_apply_is_direct: boolean;
+  job_location: string | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -77,10 +84,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ leads: [], totalResults: 0 });
     }
 
-    // Transform job postings into lead cards with salary data
+    // Transform job postings into lead cards with ALL available data
     const leads = jobs.map((job, index) => {
       const domain = extractDomain(job.employer_website || '');
       const department = guessDepartment(job.job_title);
+
+      // Parse benefits into array (can be string, array, or object)
+      const benefits: string[] = [];
+      if (job.job_benefits) {
+        if (typeof job.job_benefits === 'string') {
+          benefits.push(...job.job_benefits.split(/\s+/).map(b =>
+            b.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+          ));
+        } else if (Array.isArray(job.job_benefits)) {
+          benefits.push(...(job.job_benefits as string[]).map(b =>
+            String(b).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+          ));
+        }
+      }
+
+      // Parse highlights (qualifications, responsibilities)
+      const highlights: { qualifications: string[]; responsibilities: string[] } = {
+        qualifications: [],
+        responsibilities: [],
+      };
+      if (job.job_highlights) {
+        const h = job.job_highlights as Record<string, string[]>;
+        if (h.Qualifications) highlights.qualifications = h.Qualifications;
+        if (h.Responsibilities) highlights.responsibilities = h.Responsibilities;
+      }
 
       return {
         id: `lead-${index}-${job.employer_name}-${Date.now()}`,
@@ -101,9 +133,15 @@ export async function POST(request: NextRequest) {
           title: job.job_title,
           applyLink: job.job_apply_link,
           postedAt: job.job_posted_at_datetime_utc,
+          postedAgo: job.job_posted_at || '',
           type: job.job_employment_type,
+          description: job.job_description || '',
+          publisher: job.job_publisher || '',
+          googleLink: job.job_google_link || '',
+          applyDirect: job.job_apply_is_direct || false,
+          benefits,
+          highlights,
         },
-        // NEW: salary data from merged Job Search
         salary: {
           min: job.job_min_salary,
           max: job.job_max_salary,
