@@ -141,7 +141,7 @@ export default function FollowUpScheduler({ leadId, leadType, leadName, companyN
         <div className="px-6 pb-5 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">Skip</button>
           <button onClick={handleSchedule} disabled={loading || enabledCount === 0}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 disabled:opacity-50 transition-all">
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 disabled:opacity-50 transition-all">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
             Schedule {enabledCount} Follow-up{enabledCount !== 1 ? 's' : ''}
           </button>

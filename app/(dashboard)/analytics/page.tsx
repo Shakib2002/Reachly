@@ -28,7 +28,7 @@ function StatCard({ title, value, change, trend, icon: Icon, iconBg, iconColor }
   icon: React.ElementType; iconBg: string; iconColor: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 hover:shadow-md transition-all duration-200">
+    <div className="bg-white rounded-2xl border border-slate-200/60 p-4 hover:shadow-md transition-all duration-200">
       <div className="flex items-center justify-between mb-3">
         <div className={`w-9 h-9 ${iconBg} rounded-xl flex items-center justify-center`}>
           <Icon className={`w-4 h-4 ${iconColor}`} />
@@ -97,7 +97,7 @@ const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#0
 function InlineDonut({ data, title, subtitle }: { data: { name: string; value: number }[]; title: string; subtitle: string }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   return (
-    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+    <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
       <h3 className="text-sm font-bold text-[#1e293b]">{title}</h3>
       <p className="text-[11px] text-slate-400 mb-3">{subtitle}</p>
       {data.length > 0 ? (
@@ -147,7 +147,7 @@ function InlineHeatmap({ data }: { data: { date: string; count: number }[] }) {
   }
   const maxCount = Math.max(1, ...data.map(d => d.count));
   return (
-    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+    <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
       <h3 className="text-sm font-bold text-[#1e293b]">Activity Heatmap</h3>
       <p className="text-[11px] text-slate-400 mb-4">Last 12 weeks</p>
       <div className="flex gap-1 items-start overflow-x-auto pb-1">
@@ -330,7 +330,7 @@ export default function AnalyticsPage() {
 
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-[#e2e8f0] p-5">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 p-5">
               <h3 className="text-sm font-bold text-[#1e293b]">Leads & Emails Over Time</h3>
               <p className="text-[11px] text-slate-400 mb-4">Last {period} days</p>
               {j.leadsOverTime.some(d => d.leads > 0 || d.emails > 0) ? (
@@ -350,7 +350,7 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               ) : <div className="h-[230px] flex items-center justify-center text-sm text-slate-400">No data for this period</div>}
             </div>
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
               <h3 className="text-sm font-bold text-[#1e293b]">Pipeline Funnel</h3>
               <p className="text-[11px] text-slate-400 mb-4">Conversion by stage</p>
               {j.totalLeads > 0 ? <FunnelChart stages={jobFunnel} /> : <div className="h-[200px] flex items-center justify-center text-sm text-slate-400">Add leads to see funnel</div>}
@@ -388,7 +388,7 @@ export default function AnalyticsPage() {
 
           {/* Client Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-[#e2e8f0] p-5">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 p-5">
               <h3 className="text-sm font-bold text-[#1e293b]">Won vs Lost Over Time</h3>
               <p className="text-[11px] text-slate-400 mb-4">Project outcomes over last {period} days</p>
               {c.wonVsLostOverTime.some(d => d.won > 0 || d.lost > 0) ? (
@@ -408,7 +408,7 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               ) : <div className="h-[230px] flex items-center justify-center text-sm text-slate-400">No won/lost data yet</div>}
             </div>
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
               <h3 className="text-sm font-bold text-[#1e293b]">Client Pipeline Funnel</h3>
               <p className="text-[11px] text-slate-400 mb-4">Conversion by stage</p>
               {c.totalClients > 0 ? <FunnelChart stages={clientFunnel} /> : <div className="h-[200px] flex items-center justify-center text-sm text-slate-400">Add clients to see funnel</div>}
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <InlineDonut data={c.bySource.map(s => ({ name: s.source, value: s.count }))} title="Client Sources" subtitle="Where your clients come from" />
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
               <h3 className="text-sm font-bold text-[#1e293b]">Project Types</h3>
               <p className="text-[11px] text-slate-400 mb-4">Most common project categories</p>
               {c.byProjectType.length > 0 ? (
@@ -439,7 +439,7 @@ export default function AnalyticsPage() {
       {/* ── COMBINED: side-by-side summary ── */}
       {mode === 'combined' && j && c && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-5">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl border border-blue-100 p-5">
             <h3 className="text-sm font-bold text-blue-700 mb-3 flex items-center gap-2"><Briefcase className="w-4 h-4" />Job Summary</h3>
             <div className="space-y-2">
               {[['Total Leads', j.totalLeads], ['Emails Sent', j.emailsSent], ['Interviews', j.interviews], ['Offers', j.offers], [`Conversion`, `${j.conversionRate}%`]].map(([label, val]) => (
@@ -463,7 +463,7 @@ export default function AnalyticsPage() {
 
       {/* Empty state */}
       {!loading && !j && !c && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-16 text-center">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-16 text-center">
           <BarChart3 className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <p className="text-sm font-semibold text-slate-600">No analytics data yet</p>
           <p className="text-xs text-slate-400 mt-1">Add leads or clients to start tracking your performance</p>

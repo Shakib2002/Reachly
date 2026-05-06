@@ -155,17 +155,17 @@ export default function CRMPage() {
         </div>
         <button
           onClick={() => isJobMode ? setAddLeadModalOpen(true) : setClientModalOpen(true)}
-          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 w-fit"
+          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 w-fit"
         >
           <Plus className="w-4 h-4" />Add {isJobMode ? 'Lead' : 'Client'}
         </button>
       </div>
 
       {/* Mode Toggle */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-1.5 flex gap-1.5 w-fit">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-1.5 flex gap-1.5 w-fit">
         <button onClick={() => setMode('job')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-            isJobMode ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'
+            isJobMode ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'
           }`}>
           <Briefcase className="w-4 h-4" />Job Pipeline
           <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${isJobMode ? 'bg-white/20' : 'bg-slate-100'}`}>
@@ -174,7 +174,7 @@ export default function CRMPage() {
         </button>
         <button onClick={() => setMode('client')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-            !isJobMode ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'
+            !isJobMode ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'
           }`}>
           <Building2 className="w-4 h-4" />Client Pipeline
           <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${!isJobMode ? 'bg-white/20' : 'bg-slate-100'}`}>
@@ -184,7 +184,7 @@ export default function CRMPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -235,7 +235,7 @@ export default function CRMPage() {
         )
       ) : (
         /* List View */
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
           {isLoading ? (
             <div className="p-5 space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -267,7 +267,7 @@ export default function CRMPage() {
                       <tr key={lead.id} className="border-b border-slate-50 hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => setSelectedLead(lead)}>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold flex-shrink-0">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold flex-shrink-0">
                               {lead.title?.[0]?.toUpperCase() || 'L'}
                             </div>
                             <span className="text-sm font-semibold text-[#1e293b] truncate max-w-[200px]">{lead.title}</span>
@@ -300,7 +300,7 @@ export default function CRMPage() {
                 <p className="text-sm font-semibold text-slate-600">{searchQuery ? 'No leads match' : 'No leads yet'}</p>
                 {!searchQuery && (
                   <button onClick={() => setAddLeadModalOpen(true)}
-                    className="mt-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                    className="mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
                     <Plus className="w-3.5 h-3.5" />Add First Lead
                   </button>
                 )}
@@ -362,7 +362,7 @@ export default function CRMPage() {
                 <p className="text-sm font-semibold text-slate-600">{searchQuery ? 'No clients match' : 'No clients yet'}</p>
                 {!searchQuery && (
                   <button onClick={() => setClientModalOpen(true)}
-                    className="mt-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                    className="mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
                     <Plus className="w-3.5 h-3.5" />Add First Client
                   </button>
                 )}

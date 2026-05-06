@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { X, Loader2, Building2, User, Mail, Phone, Copy, Check, Trophy, XCircle, Clock, FileText, Bell, Send } from 'lucide-react';
@@ -236,7 +236,7 @@ export default function ClientModal({ client, onClose }: { client: ClientLead; o
                       <Bell className="w-8 h-8 text-slate-300 mb-2" />
                       <p className="text-xs font-semibold text-slate-600">No follow-ups scheduled</p>
                       <p className="text-[10px] text-slate-400 mt-1 max-w-[200px]">Keep the conversation going by scheduling an automated sequence.</p>
-                      <button onClick={() => setSchedulerOpen(true)} className="mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-500/25">
+                      <button onClick={() => setSchedulerOpen(true)} className="mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-500/25">
                         Schedule Now
                       </button>
                     </div>

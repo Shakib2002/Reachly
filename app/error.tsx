@@ -15,7 +15,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <h1 className="text-2xl font-extrabold text-[#1e293b] mb-2">Something went wrong</h1>
         <p className="text-sm text-slate-400 mb-6">We encountered an unexpected error. Please try again or go back to the homepage.</p>
         <div className="flex items-center justify-center gap-3">
-          <button onClick={reset} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25">
+          <button onClick={reset} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25">
             <RefreshCw className="w-4 h-4" /> Try Again
           </button>
           <Link href="/" className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50">

@@ -12,7 +12,7 @@ export default function TermsOfService() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/25">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/25">
             <Zap className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-[#1e293b]">Terms of Service</h1>

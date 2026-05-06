@@ -21,7 +21,7 @@ const sourceBadge: Record<string, string> = {
   Referral: 'bg-amber-50 text-amber-600 border-amber-100',
   'Cold Email': 'bg-violet-50 text-violet-600 border-violet-100',
   'Cold Call': 'bg-rose-50 text-rose-600 border-rose-100',
-  Website: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+  Website: 'bg-blue-50 text-indigo-600 border-indigo-100',
   Facebook: 'bg-blue-50 text-blue-700 border-blue-100',
   Other: 'bg-slate-50 text-slate-500 border-slate-200',
 };

@@ -151,23 +151,23 @@ export default function DiscoverPage() {
       </div>
 
       {/* Tab Switcher */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-1.5 inline-flex">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-1.5 inline-flex">
         <button onClick={() => setTab('jobs')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'jobs' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'jobs' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
           <Briefcase className="w-4 h-4" /> Job Search
         </button>
         <button onClick={() => setTab('leads')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'leads' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'leads' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
           <Users className="w-4 h-4" /> Lead Search
         </button>
         <button onClick={() => setTab('map')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'map' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === 'map' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-slate-500 hover:bg-slate-50'}`}>
           <Map className="w-4 h-4" /> Map Search
         </button>
       </div>
 
       {/* Search Section */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 sticky top-0 z-10 shadow-sm">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-5 sticky top-0 z-10 shadow-sm">
         {tab === 'jobs' ? (
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -207,7 +207,7 @@ export default function DiscoverPage() {
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
               <button onClick={searchJobs} disabled={jobsLoading}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50 col-span-2 sm:col-span-1">
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50 col-span-2 sm:col-span-1">
                 {jobsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                 Search Jobs
               </button>
@@ -251,7 +251,7 @@ export default function DiscoverPage() {
               </div>
             </div>
             <button onClick={searchLeads} disabled={leadsLoading}
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50">
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50">
               {leadsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
               Find Leads
             </button>
@@ -301,7 +301,7 @@ export default function DiscoverPage() {
               )}
             </>
           ) : jobsSearched ? (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
               <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
                 <Search className="w-7 h-7 text-slate-300" />
               </div>
@@ -309,8 +309,8 @@ export default function DiscoverPage() {
               <p className="text-sm text-slate-400 mt-1 max-w-sm">Try different keywords or broaden your search filters</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                 <Sparkles className="w-8 h-8 text-blue-400" />
               </div>
               <h3 className="text-lg font-semibold text-[#1e293b]">Search for Jobs</h3>
@@ -364,7 +364,7 @@ export default function DiscoverPage() {
               )}
             </>
           ) : leadsSearched ? (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
               <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
                 <Users className="w-7 h-7 text-slate-300" />
               </div>
@@ -372,8 +372,8 @@ export default function DiscoverPage() {
               <p className="text-sm text-slate-400 mt-1 max-w-sm">Try a different company name or job title</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
                 <Users className="w-8 h-8 text-blue-400" />
               </div>
               <h3 className="text-lg font-semibold text-[#1e293b]">Find Leads</h3>
@@ -456,7 +456,7 @@ export default function DiscoverPage() {
                 Cancel
               </button>
               <button onClick={handleConfirmSave} disabled={confirmSaving}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 {confirmSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 Save to CRM
               </button>

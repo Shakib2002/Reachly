@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -52,9 +53,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Logo Section */}
       <div className={`px-5 pt-6 pb-4 ${collapsed ? 'px-3' : ''}`}>
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 ring-1 ring-white/10">
-            <span className="text-white text-lg font-black">R</span>
-          </div>
+          <Image src="/images/logo.png" alt="Reachly" width={40} height={40} className="w-10 h-10 rounded-xl flex-shrink-0 shadow-lg shadow-blue-500/30 ring-1 ring-white/10" />
           {!collapsed && (
             <div>
               <h1 className="text-white text-lg font-bold tracking-tight leading-none">

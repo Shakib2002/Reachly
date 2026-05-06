@@ -82,7 +82,7 @@ export default function BillingSettings({ plan }: Props) {
   };
 
   const limits = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] || PLAN_LIMITS.free;
-  const card = 'bg-white rounded-2xl border border-[#e2e8f0] p-6';
+  const card = 'bg-white rounded-2xl border border-slate-200/60 p-6';
 
   return (
     <div className="space-y-5">
@@ -95,7 +95,7 @@ export default function BillingSettings({ plan }: Props) {
           </div>
           <div className="flex items-center gap-2">
             <span className={`px-3 py-1 rounded-xl text-xs font-bold uppercase ${
-              plan === 'pro' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white' :
+              plan === 'pro' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
               plan === 'team' ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white' :
               'bg-slate-100 text-slate-500'
             }`}>
@@ -129,7 +129,7 @@ export default function BillingSettings({ plan }: Props) {
 
       {/* Upgrade card */}
       {plan === 'free' && (
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-500/20">
+        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-500/20">
           <div className="flex items-start justify-between mb-3">
             <div>
               <h3 className="text-lg font-bold">Upgrade to Pro</h3>

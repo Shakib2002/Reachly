@@ -85,7 +85,7 @@ export default function WhiteLabelSettings() {
       </div>
 
       {!config.enabled ? (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl flex items-center justify-center mb-4">
             <Building2 className="w-8 h-8 text-violet-400" />
           </div>
@@ -120,7 +120,7 @@ export default function WhiteLabelSettings() {
 
           {/* Branding Section */}
           {activeSection === 'branding' && (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-4">
               <h4 className="text-xs font-bold text-[#1e293b] flex items-center gap-2 mb-1">
                 <Palette className="w-3.5 h-3.5 text-violet-500" /> Brand Customization
               </h4>
@@ -209,7 +209,7 @@ export default function WhiteLabelSettings() {
 
           {/* Domain Section */}
           {activeSection === 'domain' && (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-4">
               <h4 className="text-xs font-bold text-[#1e293b] flex items-center gap-2">
                 <Globe className="w-3.5 h-3.5 text-violet-500" /> Custom Domain
               </h4>
@@ -245,7 +245,7 @@ export default function WhiteLabelSettings() {
 
           {/* Sub-Accounts Section */}
           {activeSection === 'accounts' && (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-[#1e293b] flex items-center gap-2">
                   <Users className="w-3.5 h-3.5 text-violet-500" /> Client Sub-Accounts
@@ -282,7 +282,7 @@ export default function WhiteLabelSettings() {
 
           {/* API Keys Section */}
           {activeSection === 'api' && (
-            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-4">
               <h4 className="text-xs font-bold text-[#1e293b] flex items-center gap-2">
                 <Key className="w-3.5 h-3.5 text-violet-500" /> API Keys
               </h4>

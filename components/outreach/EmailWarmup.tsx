@@ -65,7 +65,7 @@ export default function EmailWarmup() {
 
       {/* Start Warmup */}
       {!started ? (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 flex flex-col items-center text-center">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-6 flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl flex items-center justify-center mb-4">
             <Flame className="w-8 h-8 text-orange-400" />
           </div>
@@ -84,7 +84,7 @@ export default function EmailWarmup() {
       ) : (
         <>
           {/* Progress */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-orange-500" />
@@ -106,7 +106,7 @@ export default function EmailWarmup() {
           </div>
 
           {/* 28-Day Calendar Grid */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
             <h4 className="text-xs font-bold text-[#1e293b] mb-3 flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-slate-400" /> 28-Day Warmup Schedule
             </h4>
@@ -135,7 +135,7 @@ export default function EmailWarmup() {
           </div>
 
           {/* Best Practices */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
             <h4 className="text-xs font-bold text-[#1e293b] mb-3">Best Practices</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
@@ -155,7 +155,7 @@ export default function EmailWarmup() {
           </div>
 
           {/* External Warmup Services */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
             <h4 className="text-xs font-bold text-[#1e293b] mb-2">Advanced: External Warmup Services</h4>
             <p className="text-[11px] text-slate-400 mb-3">For faster warmup, consider using a dedicated warmup network:</p>
             <div className="flex flex-wrap gap-2">

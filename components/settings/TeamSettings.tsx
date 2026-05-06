@@ -195,8 +195,8 @@ export default function TeamSettings() {
   // No team — show creation UI
   if (!team) {
     return (
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-8 flex flex-col items-center text-center max-w-md mx-auto">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-4">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-8 flex flex-col items-center text-center max-w-md mx-auto">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4">
           <Users className="w-8 h-8 text-blue-400" />
         </div>
         <h3 className="text-lg font-semibold text-[#1e293b]">Create Your Team</h3>
@@ -204,7 +204,7 @@ export default function TeamSettings() {
         <div className="mt-5 w-full space-y-3">
           <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Team name..." className={inputCls} />
           <button onClick={createTeam} disabled={creating}
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50">
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50">
             {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Create Team
           </button>
         </div>
@@ -216,12 +216,12 @@ export default function TeamSettings() {
   return (
     <div className="space-y-5">
       {/* Team Info */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
         <h3 className="text-sm font-bold text-[#1e293b] mb-3 flex items-center gap-2">
           <Users className="w-4 h-4 text-blue-500" /> Team Settings
         </h3>
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
             {team.name[0]?.toUpperCase()}
           </div>
           <div>
@@ -233,7 +233,7 @@ export default function TeamSettings() {
 
       {/* Invite */}
       {isOwner && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
           <h3 className="text-sm font-bold text-[#1e293b] mb-3">Invite Members</h3>
           {inviteLink ? (
             <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export default function TeamSettings() {
             </div>
           ) : (
             <button onClick={generateInvite} disabled={inviteLoading}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 disabled:opacity-50">
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2 disabled:opacity-50">
               {inviteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Generate Invite Link
             </button>
           )}
@@ -253,7 +253,7 @@ export default function TeamSettings() {
       )}
 
       {/* Members List */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100">
           <h3 className="text-sm font-bold text-[#1e293b]">Members ({members.length})</h3>
         </div>

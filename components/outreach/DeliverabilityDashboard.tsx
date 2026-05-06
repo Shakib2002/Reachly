@@ -115,7 +115,7 @@ export default function DeliverabilityDashboard() {
       rate: totals.sent > 0 ? `${((totals.delivered / totals.sent) * 100).toFixed(1)}%` : '–' },
     { label: 'Opened', value: totals.opened, icon: Eye, color: 'text-violet-500', bg: 'bg-violet-50',
       rate: totals.sent > 0 ? `${((totals.opened / totals.sent) * 100).toFixed(1)}%` : '–' },
-    { label: 'Clicked', value: totals.clicked, icon: MousePointerClick, color: 'text-indigo-500', bg: 'bg-indigo-50',
+    { label: 'Clicked', value: totals.clicked, icon: MousePointerClick, color: 'text-blue-500', bg: 'bg-blue-50',
       rate: totals.opened > 0 ? `${((totals.clicked / totals.opened) * 100).toFixed(1)}%` : '–' },
     { label: 'Bounced', value: totals.bounced, icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50',
       rate: totals.sent > 0 ? `${((totals.bounced / totals.sent) * 100).toFixed(1)}%` : '–' },
@@ -160,7 +160,7 @@ export default function DeliverabilityDashboard() {
       </div>
 
       {/* Health Score */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
         <div className="flex items-center gap-6">
           <div className="relative w-24 h-24">
             <svg viewBox="0 0 100 100" className="w-24 h-24 -rotate-90">
@@ -192,7 +192,7 @@ export default function DeliverabilityDashboard() {
         {metrics.map(m => {
           const Icon = m.icon;
           return (
-            <div key={m.label} className="bg-white rounded-xl border border-[#e2e8f0] p-4">
+            <div key={m.label} className="bg-white rounded-xl border border-slate-200/60 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-7 h-7 rounded-lg ${m.bg} flex items-center justify-center`}>
                   <Icon className={`w-3.5 h-3.5 ${m.color}`} />
@@ -212,7 +212,7 @@ export default function DeliverabilityDashboard() {
 
       {/* Daily Breakdown */}
       {stats.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span className="text-xs font-bold text-[#1e293b]">Daily Breakdown</span>

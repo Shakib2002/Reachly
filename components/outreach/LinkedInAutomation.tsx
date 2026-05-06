@@ -120,7 +120,7 @@ export default function LinkedInAutomation() {
 
       {/* Sequence Builder Modal */}
       {showBuilder && editing && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6 space-y-5">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-5">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-[#1e293b]">
               {editing.steps.length > 0 ? 'Build Sequence' : 'New Sequence'}
@@ -208,7 +208,7 @@ export default function LinkedInAutomation() {
       {sequences.length > 0 ? (
         <div className="space-y-3">
           {sequences.map(seq => (
-            <div key={seq.id} className="bg-white rounded-xl border border-[#e2e8f0] p-4 flex items-center justify-between">
+            <div key={seq.id} className="bg-white rounded-xl border border-slate-200/60 p-4 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <Link className="w-4 h-4 text-[#0077B5]" />
@@ -233,7 +233,7 @@ export default function LinkedInAutomation() {
           ))}
         </div>
       ) : !showBuilder && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center text-center">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-[#0077B5]/10 to-blue-50 rounded-2xl flex items-center justify-center mb-4">
             <Link className="w-8 h-8 text-[#0077B5]/50" />
           </div>

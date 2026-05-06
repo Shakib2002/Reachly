@@ -107,7 +107,7 @@ export default function NotificationSettings({ prefs, onChange }: Props) {
   return (
     <div className="space-y-5">
       {/* Toggle sections */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
         <h2 className="text-base font-bold text-[#1e293b] mb-5">Email Notifications</h2>
         <div className="space-y-5">
           {SECTIONS.map(sec => (
@@ -133,7 +133,7 @@ export default function NotificationSettings({ prefs, onChange }: Props) {
       </div>
 
       {/* Follow-up timing */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
         <h2 className="text-base font-bold text-[#1e293b] mb-1.5">Follow-up Reminder Settings</h2>
         <p className="text-xs text-slate-400 mb-4">Default days before sending automated follow-ups</p>
         <div className="grid grid-cols-3 gap-3 mb-4">
@@ -168,7 +168,7 @@ export default function NotificationSettings({ prefs, onChange }: Props) {
       </div>
 
       {/* Weekly report */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
         <h2 className="text-base font-bold text-[#1e293b] mb-4">Weekly Report</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
@@ -206,7 +206,7 @@ export default function NotificationSettings({ prefs, onChange }: Props) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-indigo-700 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Save Preferences

@@ -125,7 +125,7 @@ export default function SettingsPage() {
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Sidebar nav */}
         <div className="lg:w-56 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] p-2 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible sticky top-4">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-2 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible sticky top-4">
             {NAV.map(n => (
               <button
                 key={n.id}

@@ -155,7 +155,7 @@ export default function AddClientModal({ onClose }: { onClose: () => void }) {
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={onClose} className="px-4 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
             <button onClick={handleSubmit} disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 disabled:opacity-50">
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />} Save Client
             </button>
           </div>

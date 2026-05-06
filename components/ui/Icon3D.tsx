@@ -15,7 +15,7 @@ const SIZES: Record<IconSize, { box: string; icon: string }> = {
 
 const VARIANTS: Record<IconVariant, { gradient: string; shadow: string; iconColor: string }> = {
   blue: { gradient: 'from-blue-500 to-blue-600', shadow: 'shadow-blue-500/30', iconColor: 'text-white' },
-  indigo: { gradient: 'from-indigo-500 to-indigo-600', shadow: 'shadow-indigo-500/30', iconColor: 'text-white' },
+  indigo: { gradient: 'from-blue-500 to-blue-600', shadow: 'shadow-blue-500/30', iconColor: 'text-white' },
   violet: { gradient: 'from-violet-500 to-violet-600', shadow: 'shadow-violet-500/30', iconColor: 'text-white' },
   emerald: { gradient: 'from-emerald-500 to-emerald-600', shadow: 'shadow-emerald-500/30', iconColor: 'text-white' },
   amber: { gradient: 'from-amber-400 to-amber-500', shadow: 'shadow-amber-500/30', iconColor: 'text-white' },
@@ -64,7 +64,7 @@ export function Icon3DSoft({ icon: IconComponent, size = 'md', variant = 'blue',
   
   const SOFT: Record<IconVariant, { bg: string; iconColor: string; border: string }> = {
     blue: { bg: 'bg-blue-50', iconColor: 'text-blue-500', border: 'border-blue-100' },
-    indigo: { bg: 'bg-indigo-50', iconColor: 'text-indigo-500', border: 'border-indigo-100' },
+    indigo: { bg: 'bg-blue-50', iconColor: 'text-blue-500', border: 'border-indigo-100' },
     violet: { bg: 'bg-violet-50', iconColor: 'text-violet-500', border: 'border-violet-100' },
     emerald: { bg: 'bg-emerald-50', iconColor: 'text-emerald-500', border: 'border-emerald-100' },
     amber: { bg: 'bg-amber-50', iconColor: 'text-amber-500', border: 'border-amber-100' },

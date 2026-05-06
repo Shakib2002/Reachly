@@ -126,7 +126,7 @@ export default function WelcomeOnboarding({ userName }: { userName: string }) {
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-300">
             {/* Header */}
             {currentSlide === 0 && (
-              <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 p-8 text-white text-center relative overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-8 text-white text-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
                 <div className="relative">
@@ -160,7 +160,7 @@ export default function WelcomeOnboarding({ userName }: { userName: string }) {
                 </div>
                 <button
                   onClick={() => setCurrentSlide(1)}
-                  className="w-full mt-5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                  className="w-full mt-5 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
                 >
                   Show Me How <ArrowRight className="w-4 h-4" />
                 </button>
@@ -208,7 +208,7 @@ export default function WelcomeOnboarding({ userName }: { userName: string }) {
 
                 <button
                   onClick={() => setShowWelcome(false)}
-                  className="w-full mt-5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                  className="w-full mt-5 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
                 >
                   Let&apos;s Get Started! <Rocket className="w-4 h-4" />
                 </button>
@@ -220,7 +220,7 @@ export default function WelcomeOnboarding({ userName }: { userName: string }) {
 
       {/* Getting Started Checklist — persists on dashboard until all done or dismissed */}
       {!dismissed && !allComplete && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
           {/* Checklist Header */}
           <div className="p-5 border-b border-slate-100">
             <div className="flex items-center justify-between">
@@ -234,7 +234,7 @@ export default function WelcomeOnboarding({ userName }: { userName: string }) {
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-500 rounded-full transition-all duration-500"
                       style={{ width: `${progress}%` }}
                     />
                   </div>

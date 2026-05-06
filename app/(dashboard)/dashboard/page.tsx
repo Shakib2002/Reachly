@@ -102,7 +102,7 @@ function EmptyState({
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="mt-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-1.5"
+          className="mt-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-1.5"
         >
           <Plus className="w-3.5 h-3.5" />
           {actionLabel}
@@ -465,7 +465,7 @@ export default function DashboardPage() {
                   >
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold flex-shrink-0">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold flex-shrink-0">
                           {lead.title?.[0]?.toUpperCase() || 'L'}
                         </div>
                         <span className="text-sm font-medium text-[#1e293b] truncate max-w-[200px]">

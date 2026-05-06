@@ -103,7 +103,7 @@ function IntegrationCard({ intg, value, onSaved }: {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 hover:shadow-md transition-all duration-200">
+    <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-md transition-all duration-200">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 ${intg.iconBg} rounded-xl flex items-center justify-center text-lg flex-shrink-0`}>
@@ -153,7 +153,7 @@ function IntegrationCard({ intg, value, onSaved }: {
                 {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
-            <button onClick={save} disabled={saving} className="px-3 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 disabled:opacity-40 flex-shrink-0 flex items-center gap-1">
+            <button onClick={save} disabled={saving} className="px-3 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 disabled:opacity-40 flex-shrink-0 flex items-center gap-1">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
               Save
             </button>
@@ -218,7 +218,7 @@ export default function IntegrationSettings({ keys, onSaved }: Props) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {COMING_SOON.map(cs => (
-            <div key={cs.name} className="bg-white rounded-2xl border border-[#e2e8f0] p-4 opacity-60">
+            <div key={cs.name} className="bg-white rounded-2xl border border-slate-200/60 p-4 opacity-60">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center text-base">{cs.icon}</div>

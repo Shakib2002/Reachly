@@ -109,7 +109,7 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             className="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded-xl transition-colors"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm">
               {initials}
             </div>
             <ChevronDown

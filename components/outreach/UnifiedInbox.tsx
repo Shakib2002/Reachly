@@ -143,7 +143,7 @@ export default function UnifiedInbox() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-12 flex flex-col items-center">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center">
         <Loader2 className="w-6 h-6 text-blue-500 animate-spin mb-3" />
         <p className="text-sm text-slate-400">Loading inbox...</p>
       </div>
@@ -151,7 +151,7 @@ export default function UnifiedInbox() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden" style={{ minHeight: '70vh' }}>
+    <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden" style={{ minHeight: '70vh' }}>
       <div className="flex h-full" style={{ minHeight: '70vh' }}>
         {/* Sidebar — Filter + Message List */}
         <div className={`${selected ? 'hidden lg:flex' : 'flex'} flex-col w-full lg:w-[380px] border-r border-slate-100`}>
@@ -245,7 +245,7 @@ export default function UnifiedInbox() {
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <h2 className="text-base font-bold text-[#1e293b]">{selected.subject}</h2>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
                     {selected.from_email[0]?.toUpperCase()}
                   </div>
                   <div>
@@ -270,7 +270,7 @@ export default function UnifiedInbox() {
                     className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 resize-none transition-all" />
                   <div className="flex justify-end mt-2">
                     <button onClick={handleReply} disabled={sending || !replyBody.trim()}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold rounded-xl hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50">
                       {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />} Send Reply
                     </button>
                   </div>
@@ -279,7 +279,7 @@ export default function UnifiedInbox() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4">
                 <Inbox className="w-10 h-10 text-blue-300" />
               </div>
               <h3 className="text-base font-semibold text-slate-300">Select a message</h3>

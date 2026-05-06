@@ -57,14 +57,14 @@ export default function LandingPage() {
           </div>
           <div className="hidden md:flex items-center gap-3">
             <Link href="/login" className={`px-4 py-2 text-sm font-medium transition-colors ${scrolled ? 'text-slate-600 hover:text-[#1e293b]' : 'text-blue-100 hover:text-white'}`}>Login</Link>
-            <Link href="/register" className={`px-5 py-2.5 text-sm font-semibold rounded-full shadow-lg transition-all ${scrolled ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-500/25' : 'bg-white text-blue-600 shadow-black/10 hover:shadow-black/20'}`}>Get Started Free</Link>
+            <Link href="/register" className={`px-5 py-2.5 text-sm font-semibold rounded-full shadow-lg transition-all ${scrolled ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-500/25' : 'bg-white text-blue-600 shadow-black/10 hover:shadow-black/20'}`}>Get Started Free</Link>
           </div>
           <button onClick={()=>setMobileMenu(!mobileMenu)} className="md:hidden p-2"><Menu className={`w-5 h-5 ${scrolled ? 'text-slate-600' : 'text-white'}`}/></button>
         </div>
         {mobileMenu&&<div className="md:hidden bg-white border-t px-6 py-4 space-y-3 shadow-lg">
           {NAV.map(n=><a key={n} href={`#${n.toLowerCase()}`} onClick={()=>setMobileMenu(false)} className="block text-sm font-medium text-slate-600 py-2">{n}</a>)}
           <Link href="/login" className="block text-sm font-medium text-slate-600 py-2">Login</Link>
-          <Link href="/register" className="block w-full text-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-full">Get Started Free</Link>
+          <Link href="/register" className="block w-full text-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-full">Get Started Free</Link>
         </div>}
       </nav>
 
@@ -345,8 +345,8 @@ export default function LandingPage() {
               </div>
               <div className="flex-1 w-full">
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-5 hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-blue-400 rounded-l-2xl" />
-                  <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center"><Mail className="w-3.5 h-3.5 text-indigo-500"/></div><span className="text-xs font-bold text-[#1e293b]">AI Email Composer</span><span className="ml-auto px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[9px] font-bold rounded-full">AI Generated</span></div>
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-blue-400 rounded-l-2xl" />
+                  <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center"><Mail className="w-3.5 h-3.5 text-blue-500"/></div><span className="text-xs font-bold text-[#1e293b]">AI Email Composer</span><span className="ml-auto px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[9px] font-bold rounded-full">AI Generated</span></div>
                   <div className="space-y-2 mb-3">
                     <div className="flex gap-2"><span className="text-[10px] text-slate-400 w-8 flex-shrink-0">To:</span><span className="text-[10px] text-[#1e293b] font-medium">sarah.k@google.com</span></div>
                     <div className="flex gap-2"><span className="text-[10px] text-slate-400 w-8 flex-shrink-0">Subj:</span><span className="text-[10px] text-[#1e293b] font-medium">Quick question about the React role</span></div>
@@ -354,7 +354,7 @@ export default function LandingPage() {
                   <div className="bg-slate-50 rounded-xl p-3 mb-3 border border-slate-100">
                     <p className="text-[11px] text-slate-600 leading-relaxed">Hi Sarah, I noticed you&apos;re looking for a Senior React Developer. With 5+ years building scalable apps at top startups, I&apos;d love to chat about how I can contribute to your team...</p>
                   </div>
-                  <div className="flex items-center justify-between"><div className="flex gap-1.5">{['😊','📎','⏰'].map((e,i)=><span key={i} className="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center text-xs cursor-pointer hover:bg-slate-200 transition-colors">{e}</span>)}</div><button className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[11px] font-bold rounded-lg shadow-md shadow-blue-500/20">Send ✨</button></div>
+                  <div className="flex items-center justify-between"><div className="flex gap-1.5">{['😊','📎','⏰'].map((e,i)=><span key={i} className="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center text-xs cursor-pointer hover:bg-slate-200 transition-colors">{e}</span>)}</div><button className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[11px] font-bold rounded-lg shadow-md shadow-blue-500/20">Send ✨</button></div>
                 </div>
               </div>
             </div>

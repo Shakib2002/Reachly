@@ -65,7 +65,7 @@ export default function AccountSettings({ userEmail, memberSince, plan }: Props)
     if (user) { await navigator.clipboard.writeText(user.id); setCopied(true); setTimeout(() => setCopied(false), 2000); }
   };
 
-  const card = 'bg-white rounded-2xl border border-[#e2e8f0] p-6';
+  const card = 'bg-white rounded-2xl border border-slate-200/60 p-6';
 
   return (
     <div className="space-y-5">
@@ -132,7 +132,7 @@ export default function AccountSettings({ userEmail, memberSince, plan }: Props)
           <button
             onClick={updatePassword}
             disabled={saving || !newPwd || !confPwd}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-indigo-700 transition-all disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
             Update Password

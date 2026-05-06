@@ -24,7 +24,7 @@ const columnColors: Record<LeadStatus, string> = {
 
 const sourceBadgeStyles: Record<string, string> = {
   LinkedIn: 'bg-blue-50 text-blue-600 border-blue-100',
-  Indeed: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+  Indeed: 'bg-blue-50 text-indigo-600 border-indigo-100',
   Apollo: 'bg-violet-50 text-violet-600 border-violet-100',
   Manual: 'bg-slate-50 text-slate-500 border-slate-200',
   Referral: 'bg-emerald-50 text-emerald-600 border-emerald-100',

@@ -53,12 +53,12 @@ export default function PricingPage() {
       {/* Header */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">R</div>
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">R</div>
           <span className="text-lg font-bold text-[#1e293b]">Reachly</span>
         </Link>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-slate-700">Log in</Link>
-          <Link href="/register" className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25">Get Started</Link>
+          <Link href="/register" className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/25">Get Started</Link>
         </div>
       </nav>
 
@@ -81,7 +81,7 @@ export default function PricingPage() {
       <div className="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-5 pb-16">
         {PLANS.map(p => (
           <div key={p.id} className={`bg-white rounded-2xl border-2 ${p.color} p-6 flex flex-col relative`}>
-            {p.badge && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold rounded-full shadow-lg">{p.badge}</span>}
+            {p.badge && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">{p.badge}</span>}
             <h3 className="text-lg font-bold text-[#1e293b]">{p.name}</h3>
             <div className="mt-3 mb-5">
               <span className="text-4xl font-extrabold text-[#1e293b]">${annual ? p.annual : p.price}</span>
@@ -102,7 +102,7 @@ export default function PricingPage() {
               </Link>
             ) : (
               <button onClick={() => handleCheckout(p.id)} disabled={!!loading}
-                className={`w-full py-3 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center gap-2 ${p.id === 'pro' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-indigo-700' : 'bg-gradient-to-r from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25 hover:from-violet-600 hover:to-purple-700'}`}>
+                className={`w-full py-3 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center gap-2 ${p.id === 'pro' ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700' : 'bg-gradient-to-r from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25 hover:from-violet-600 hover:to-purple-700'}`}>
                 {loading === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : p.id === 'pro' ? <Sparkles className="w-4 h-4" /> : <Users className="w-4 h-4" />}
                 {p.cta}
               </button>

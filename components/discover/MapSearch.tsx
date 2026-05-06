@@ -210,7 +210,7 @@ export default function MapSearch() {
           <div className="flex flex-wrap gap-2 mb-2">
             {AREAS.map(a => (
               <button key={a} onClick={() => setLocation(a)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${location === a ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-indigo-300'}`}>
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${location === a ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-indigo-300'}`}>
                 {a}
               </button>
             ))}
@@ -325,7 +325,7 @@ export default function MapSearch() {
         <button
           onClick={startSearch}
           disabled={loading || !searchQuery.trim()}
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl text-sm font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {loading
             ? <><Loader2 className="w-4 h-4 animate-spin" />{progress}</>
@@ -399,7 +399,7 @@ export default function MapSearch() {
 
       {!searched && (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
             <Sparkles className="w-8 h-8 text-blue-400" />
           </div>
           <h3 className="text-lg font-bold text-slate-700">Find High-Converting Local Leads</h3>

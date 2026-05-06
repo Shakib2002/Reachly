@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef } from 'react';
 import { Loader2, Briefcase, Building2, Globe, Globe2, AtSign, Camera, X, Save } from 'lucide-react';
@@ -92,7 +92,7 @@ export default function ProfileSettings({ profile, userEmail, onChange }: Props)
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
         <h2 className="text-base font-bold text-[#1e293b] mb-5">Profile Information</h2>
 
         {/* Avatar */}
@@ -102,7 +102,7 @@ export default function ProfileSettings({ profile, userEmail, onChange }: Props)
               {profile.avatar_url ? (
                 <Image src={profile.avatar_url} alt="Avatar" width={80} height={80} className="w-20 h-20 rounded-2xl object-cover shadow-md" unoptimized />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {initials}
                 </div>
               )}
@@ -199,7 +199,7 @@ export default function ProfileSettings({ profile, userEmail, onChange }: Props)
       </div>
 
       {/* User Type */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-6">
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
         <h2 className="text-base font-bold text-[#1e293b] mb-1.5">I am a...</h2>
         <p className="text-xs text-slate-400 mb-4">This affects CRM labels, analytics views, and dashboard widgets.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -237,7 +237,7 @@ export default function ProfileSettings({ profile, userEmail, onChange }: Props)
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-indigo-700 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Save Changes

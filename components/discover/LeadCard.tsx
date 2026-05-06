@@ -47,7 +47,7 @@ function getAvatarColor(name: string) {
     'from-amber-400 to-amber-600',
     'from-rose-400 to-rose-600',
     'from-cyan-400 to-cyan-600',
-    'from-indigo-400 to-indigo-600',
+    'from-indigo-400 to-blue-600',
     'from-pink-400 to-pink-600',
   ];
   let hash = 0;

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { AlertTriangle, Trash2, Loader2, X } from 'lucide-react';
@@ -153,7 +153,7 @@ export default function DangerZone({ userEmail }: Props) {
           <DangerRow
             title="Export All Data"
             desc="Download all your leads, clients, emails, templates, and activities as JSON"
-            button={exporting ? 'Exporting...' : '⬇ Export All Data'}
+            button={exporting ? 'Exporting...' : '? Export All Data'}
             onClick={exportData}
             loading={exporting}
           />
