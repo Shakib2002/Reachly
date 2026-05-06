@@ -9,8 +9,11 @@ import toast from 'react-hot-toast';
 import {
   Search, MapPin, Briefcase, Users, Loader2, Compass,
   ChevronDown, Sparkles, AlertCircle, RefreshCw, X,
-  Building2, DollarSign, ChevronRight, Map,
+  Building2, DollarSign, ChevronRight, Map, Download,
 } from 'lucide-react';
+
+const SENIORITY_OPTIONS = ['C-Suite', 'VP', 'Director', 'Manager', 'Individual'];
+const INDUSTRY_OPTIONS = ['Technology', 'Healthcare', 'Finance', 'Marketing', 'SaaS', 'E-commerce', 'Education'];
 
 type Tab = 'jobs' | 'leads' | 'map';
 
@@ -40,6 +43,8 @@ export default function DiscoverPage() {
   const [leadsSearched, setLeadsSearched] = useState(false);
   const [savedLeadIds, setSavedLeadIds] = useState<Set<string>>(new Set());
   const [visibleLeadCount, setVisibleLeadCount] = useState(10);
+  const [leadSeniority, setLeadSeniority] = useState('');
+  const [leadIndustry, setLeadIndustry] = useState('');
 
   // Save confirm modal
   const [confirmModal, setConfirmModal] = useState<{ type: 'job'; data: Job } | { type: 'lead'; data: LeadResult } | null>(null);
@@ -85,10 +90,15 @@ export default function DiscoverPage() {
     setLeadsLoading(true); setLeadsError(''); setLeadsSearched(true); setVisibleLeadCount(10);
     addToHistory(leadCompany || leadTitle);
     try {
+      // Build enhanced query with seniority/industry
+      let enhancedTitle = leadTitle;
+      if (leadSeniority && !leadTitle.toLowerCase().includes(leadSeniority.toLowerCase())) {
+        enhancedTitle = leadSeniority === 'C-Suite' ? `CEO ${leadTitle}`.trim() : `${leadSeniority} ${leadTitle}`.trim();
+      }
       const res = await fetch('/api/leads/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company: leadCompany, title: leadTitle, location: leadLocation }),
+        body: JSON.stringify({ company: leadCompany, title: enhancedTitle, location: leadLocation }),
       });
       if (!res.ok) throw new Error('Failed to search leads');
       const data = await res.json();
@@ -96,7 +106,24 @@ export default function DiscoverPage() {
     } catch (err) {
       setLeadsError(err instanceof Error ? err.message : 'Something went wrong');
     } finally { setLeadsLoading(false); }
-  }, [leadCompany, leadTitle, leadLocation, addToHistory]);
+  }, [leadCompany, leadTitle, leadLocation, leadSeniority, addToHistory]);
+
+  const exportLeadsCSV = () => {
+    if (leads.length === 0) return;
+    const headers = ['Name', 'Position', 'Company', 'Department', 'Domain', 'Email', 'Location', 'Job Title', 'Apply Link'];
+    const rows = leads.map(l => [
+      `${l.firstName} ${l.lastName}`, l.position, l.company, l.department,
+      l.domain || '', l.email || '', l.location || '',
+      l.jobPosting?.title || '', l.jobPosting?.applyLink || '',
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `reachly-leads-${(leadCompany || leadTitle).replace(/\s+/g, '-')}-${Date.now()}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`Exported ${leads.length} leads to CSV`);
+  };
 
   const saveJobToCRM = async (job: Job) => {
     setConfirmModal({ type: 'job', data: job });
@@ -250,6 +277,33 @@ export default function DiscoverPage() {
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
               </div>
             </div>
+
+            {/* Seniority Filter */}
+            <div>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 block">Seniority Level</label>
+              <div className="flex flex-wrap gap-1.5">
+                {SENIORITY_OPTIONS.map(s => (
+                  <button key={s} onClick={() => setLeadSeniority(leadSeniority === s ? '' : s)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border ${leadSeniority === s ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Industry Filter */}
+            <div>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 block">Industry</label>
+              <div className="flex flex-wrap gap-1.5">
+                {INDUSTRY_OPTIONS.map(ind => (
+                  <button key={ind} onClick={() => setLeadIndustry(leadIndustry === ind ? '' : ind)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border ${leadIndustry === ind ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}>
+                    {ind}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button onClick={searchLeads} disabled={leadsLoading}
               className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50">
               {leadsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
@@ -346,7 +400,13 @@ export default function DiscoverPage() {
             </div>
           ) : leads.length > 0 ? (
             <>
-              <p className="text-sm text-slate-400 mb-3">Showing <span className="font-semibold text-[#1e293b]">{Math.min(visibleLeadCount, leads.length)}</span> of <span className="font-semibold text-[#1e293b]">{leads.length}</span> leads</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm text-slate-400">Showing <span className="font-semibold text-[#1e293b]">{Math.min(visibleLeadCount, leads.length)}</span> of <span className="font-semibold text-[#1e293b]">{leads.length}</span> leads</p>
+                <button onClick={exportLeadsCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors">
+                  <Download className="w-3.5 h-3.5" /> Export CSV
+                </button>
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {leads.slice(0, visibleLeadCount).map((lead) => (
                   <div key={lead.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">

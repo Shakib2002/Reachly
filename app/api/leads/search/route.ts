@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
           postedAt: job.job_posted_at_datetime_utc,
           type: job.job_employment_type,
         },
-        confidence: 75 + Math.floor(Math.random() * 20),
+        confidence: 0, // Populated by enrichment API
         isReal: true,
       };
     });

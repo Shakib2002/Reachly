@@ -2,14 +2,9 @@
 
 import { useState } from 'react';
 import {
-  Building2,
-  ExternalLink,
-  Mail,
-  CheckCircle,
-  Loader2,
-  UserPlus,
-  MapPin,
-  Briefcase,
+  Building2, ExternalLink, Mail, CheckCircle, Loader2,
+  UserPlus, MapPin, Briefcase, Search, Link2, Phone,
+  Shield, ShieldCheck, ShieldAlert,
 } from 'lucide-react';
 
 export interface LeadResult {
@@ -47,7 +42,7 @@ function getAvatarColor(name: string) {
     'from-amber-400 to-amber-600',
     'from-rose-400 to-rose-600',
     'from-cyan-400 to-cyan-600',
-    'from-indigo-400 to-blue-600',
+    'from-blue-500 to-blue-700',
     'from-pink-400 to-pink-600',
   ];
   let hash = 0;
@@ -63,24 +58,105 @@ function formatDate(iso: string) {
   } catch { return ''; }
 }
 
+function ConfidenceBadge({ confidence }: { confidence: number }) {
+  if (confidence === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-50 text-slate-400 border border-slate-200">
+        <Shield className="w-3 h-3" /> Not Enriched
+      </span>
+    );
+  }
+  if (confidence >= 80) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
+        <ShieldCheck className="w-3 h-3" /> {confidence}% Verified
+      </span>
+    );
+  }
+  if (confidence >= 50) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
+        <Shield className="w-3 h-3" /> {confidence}% Likely
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-red-50 text-red-500 border border-red-200">
+      <ShieldAlert className="w-3 h-3" /> {confidence}% Guess
+    </span>
+  );
+}
+
 export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
   const [saving, setSaving] = useState(false);
+  const [enriching, setEnriching] = useState(false);
+  const [enrichedData, setEnrichedData] = useState<{
+    email: string | null;
+    confidence: number;
+    linkedin: string | null;
+    phone: string | null;
+    source: string;
+  } | null>(null);
 
   const fullName = `${lead.firstName} ${lead.lastName}`;
   const initials = `${lead.firstName?.[0] || ''}${lead.lastName?.[0] || ''}`.toUpperCase();
   const avatarColor = getAvatarColor(fullName);
 
+  const displayEmail = enrichedData?.email || lead.email;
+  const displayConfidence = enrichedData?.confidence || lead.confidence;
+  const displayLinkedin = enrichedData?.linkedin || lead.linkedin;
+  const displayPhone = enrichedData?.phone || null;
+
   const handleAdd = async () => {
     setSaving(true);
-    await onAddToCRM(lead);
+    // Pass enriched data if available
+    const enrichedLead = enrichedData ? {
+      ...lead,
+      email: enrichedData.email || lead.email,
+      confidence: enrichedData.confidence,
+      linkedin: enrichedData.linkedin || lead.linkedin,
+    } : lead;
+    await onAddToCRM(enrichedLead);
     setSaving(false);
   };
+
+  const handleEnrich = async () => {
+    if (!lead.domain && !lead.company) return;
+    setEnriching(true);
+    try {
+      const res = await fetch('/api/leads/waterfall', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name: lead.firstName,
+          last_name: lead.lastName,
+          company: lead.company,
+          domain: lead.domain,
+          role: lead.position,
+        }),
+      });
+      const data = await res.json();
+      if (data.result) {
+        setEnrichedData({
+          email: data.result.email,
+          confidence: data.result.confidence,
+          linkedin: data.result.linkedin,
+          phone: data.result.phone,
+          source: data.result.source,
+        });
+      }
+    } catch {
+      setEnrichedData({ email: null, confidence: 0, linkedin: null, phone: null, source: 'failed' });
+    }
+    setEnriching(false);
+  };
+
+  const linkedinSearchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${lead.position} ${lead.company}`)}`;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 p-5 hover:shadow-md hover:border-blue-200 transition-all duration-200 group">
       {/* Header */}
       <div className="flex items-start gap-3.5">
-        {/* Logo or Avatar */}
         {lead.logo ? (
           <img
             src={lead.logo}
@@ -111,12 +187,14 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
           )}
         </div>
 
-        {/* Department badge */}
-        {lead.department && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100 flex-shrink-0">
-            {lead.department}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          {lead.department && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
+              {lead.department}
+            </span>
+          )}
+          <ConfidenceBadge confidence={displayConfidence} />
+        </div>
       </div>
 
       {/* Job Posting info */}
@@ -129,59 +207,96 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
               {lead.jobPosting.type?.replace('_', ' ')} · Posted {formatDate(lead.jobPosting.postedAt)}
             </p>
           </div>
-          <a
-            href={lead.jobPosting.applyLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold flex items-center gap-0.5 flex-shrink-0"
-          >
+          <a href={lead.jobPosting.applyLink} target="_blank" rel="noopener noreferrer"
+            className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold flex items-center gap-0.5 flex-shrink-0">
             View <ExternalLink className="w-3 h-3" />
           </a>
         </div>
       )}
 
-      {/* Email row */}
+      {/* Email / Enrichment row */}
       <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-slate-50 rounded-lg">
         <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-        {lead.email ? (
-          <span className="text-xs text-slate-600 font-mono truncate flex-1">{lead.email}</span>
+        {displayEmail ? (
+          <a href={`mailto:${displayEmail}`} className="text-xs text-blue-600 font-mono truncate flex-1 hover:text-blue-700">
+            {displayEmail}
+          </a>
         ) : lead.domain ? (
           <span className="text-xs text-slate-400 truncate flex-1">
             Find via <span className="text-blue-500 font-medium">{lead.domain}</span>
           </span>
         ) : (
-          <span className="text-xs text-slate-400 italic">Email not available</span>
+          <span className="text-xs text-slate-400 italic flex-1">Click &quot;Find Email&quot; to enrich</span>
+        )}
+        {enrichedData?.source && enrichedData.source !== 'failed' && (
+          <span className="text-[9px] px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded font-semibold border border-emerald-100">
+            via {enrichedData.source}
+          </span>
         )}
       </div>
 
-      {/* Actions */}
+      {/* Phone row (if enriched) */}
+      {displayPhone && (
+        <div className="flex items-center gap-2 mt-1.5 px-3 py-2 bg-slate-50 rounded-lg">
+          <Phone className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+          <a href={`tel:${displayPhone}`} className="text-xs text-slate-600 font-mono truncate hover:text-blue-600">
+            {displayPhone}
+          </a>
+        </div>
+      )}
+
+      {/* Quick Action Buttons */}
+      <div className="flex items-center gap-1.5 mt-3">
+        {/* Find Email */}
+        {!displayEmail && (
+          <button
+            onClick={handleEnrich}
+            disabled={enriching}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-100 transition-colors disabled:opacity-50"
+          >
+            {enriching ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
+            Find Email
+          </button>
+        )}
+
+        {/* LinkedIn Search */}
+        <a
+          href={displayLinkedin || linkedinSearchUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
+        >
+          <Link2 className="w-3 h-3" />
+          {displayLinkedin ? 'View Profile' : 'Find on LinkedIn'}
+        </a>
+
+        {/* Phone (if available) */}
+        {displayPhone && (
+          <a href={`tel:${displayPhone}`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+            <Phone className="w-3 h-3" /> Call
+          </a>
+        )}
+      </div>
+
+      {/* CRM Actions */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
         {isSaved ? (
-          <button
-            disabled
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200"
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            Added to CRM
+          <button disabled
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <CheckCircle className="w-3.5 h-3.5" /> Saved to CRM
           </button>
         ) : (
-          <button
-            onClick={handleAdd}
-            disabled={saving}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-50"
-          >
+          <button onClick={handleAdd} disabled={saving}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-50">
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
             Add to CRM
           </button>
         )}
         {lead.jobPosting?.applyLink && (
-          <a
-            href={lead.jobPosting.applyLink}
-            target="_blank"
-            rel="noopener noreferrer"
+          <a href={lead.jobPosting.applyLink} target="_blank" rel="noopener noreferrer"
             className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-blue-500 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-            title="View Job Posting"
-          >
+            title="View Job Posting">
             <ExternalLink className="w-4 h-4" />
           </a>
         )}
@@ -190,7 +305,6 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
   );
 }
 
-// Skeleton
 export function LeadCardSkeleton() {
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 p-5 animate-pulse">
