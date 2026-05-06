@@ -287,15 +287,40 @@ export default function LandingPage() {
               <div className="flex-1 w-full">
                 <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-5 hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-teal-400 rounded-l-2xl" />
-                  <div className="grid grid-cols-4 gap-3">
-                    {[{s:'New',c:'bg-blue-500',n:12},{s:'Applied',c:'bg-amber-500',n:8},{s:'Interview',c:'bg-cyan-500',n:5},{s:'Offer',c:'bg-emerald-500',n:3}].map(col=>(
+                  <div className="grid grid-cols-4 gap-2.5">
+                    {[
+                      {s:'New',c:'bg-blue-500',bc:'border-blue-100',n:12,cards:[
+                        {name:'Sarah Kim',role:'PM at Google',avatar:'S',ac:'bg-blue-400',time:'2m ago'},
+                        {name:'Alex Chen',role:'CTO at Stripe',avatar:'A',ac:'bg-sky-400',time:'1h ago'},
+                        {name:'Maya Patel',role:'VP at Meta',avatar:'M',ac:'bg-cyan-400',time:'3h ago'},
+                      ]},
+                      {s:'Applied',c:'bg-amber-500',bc:'border-amber-100',n:8,cards:[
+                        {name:'James Liu',role:'Dir. at Netflix',avatar:'J',ac:'bg-amber-400',time:'1d ago'},
+                        {name:'Emma Wilson',role:'Lead at Airbnb',avatar:'E',ac:'bg-orange-400',time:'2d ago'},
+                        {name:'David Park',role:'Eng at Uber',avatar:'D',ac:'bg-yellow-400',time:'3d ago'},
+                      ]},
+                      {s:'Interview',c:'bg-cyan-500',bc:'border-cyan-100',n:5,cards:[
+                        {name:'Lisa Wang',role:'Sr. Dev at AWS',avatar:'L',ac:'bg-cyan-400',time:'Tomorrow'},
+                        {name:'Tom Brown',role:'Arch at Tesla',avatar:'T',ac:'bg-teal-400',time:'Wed 2pm'},
+                      ]},
+                      {s:'Offer',c:'bg-emerald-500',bc:'border-emerald-100',n:3,cards:[
+                        {name:'Anna Lee',role:'Staff at Apple',avatar:'A',ac:'bg-emerald-400',time:'$185k'},
+                        {name:'Ryan Kim',role:'Lead at Figma',avatar:'R',ac:'bg-green-400',time:'$160k'},
+                      ]},
+                    ].map(col=>(
                       <div key={col.s}>
                         <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-slate-500 uppercase">{col.s}</span><span className={`w-5 h-5 ${col.c} rounded-full text-[9px] text-white flex items-center justify-center font-bold`}>{col.n}</span></div>
-                        {Array.from({length: Math.min(col.n, 3)}).map((_,j)=>(
-                          <div key={j} className="bg-slate-50 rounded-lg p-2 mb-1.5 border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all cursor-grab">
-                            <div className={`w-full h-0.5 ${col.c} rounded-full mb-1.5 opacity-60`}/>
-                            <div className="h-2 bg-slate-200 rounded w-3/4 mb-1"/>
-                            <div className="h-1.5 bg-slate-100 rounded w-1/2"/>
+                        {col.cards.map((card,j)=>(
+                          <div key={j} className={`bg-white rounded-lg p-2 mb-1.5 border ${col.bc} hover:border-blue-300 hover:shadow-md transition-all cursor-grab group/card`}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <div className={`w-5 h-5 ${card.ac} rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0`}>{card.avatar}</div>
+                              <div className="min-w-0"><p className="text-[9px] font-bold text-[#1e293b] truncate">{card.name}</p></div>
+                            </div>
+                            <p className="text-[8px] text-slate-400 truncate mb-1">{card.role}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[7px] text-slate-300">{card.time}</span>
+                              <div className={`w-1.5 h-1.5 ${col.c} rounded-full opacity-60`}/>
+                            </div>
                           </div>
                         ))}
                       </div>
