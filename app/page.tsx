@@ -141,18 +141,92 @@ export default function LandingPage() {
         <style jsx>{`@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}.animate-marquee{animation:marquee 20s linear infinite}`}</style>
       </section>
 
-      {/* Problem */}
-      <section className="py-20 px-6 gradient-mesh">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-extrabold text-[#1e293b] mb-10 font-display reveal">Sound familiar?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[{e:'🔄',t:'Switching between 5+ tools daily',d:'Job boards, CRM, email, analytics — all separate'},{e:'😵',t:'Losing track of applications',d:'Which jobs did you apply to? When? No clue.'},{e:'✍️',t:'Writing the same email over and over',d:'Copy-pasting the same template 50 times a week'}].map((p,i)=>(
-              <div key={i} className={`glass-card rounded-2xl p-6 reveal delay-${i+1}`}>
-                <span className="text-3xl">{p.e}</span><h3 className="text-sm font-bold text-[#1e293b] mt-3 mb-1 font-display">{p.t}</h3><p className="text-xs text-slate-400">{p.d}</p>
+      {/* Problem — "Sound familiar?" */}
+      <section className="py-24 px-6 relative overflow-hidden">
+        {/* Subtle red-tinted gradient background */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #fef2f2 30%, #fff1f2 50%, #fef2f2 70%, #ffffff 100%)'
+        }} />
+        <div className="absolute inset-0 bg-dots opacity-50" />
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          {/* Section header */}
+          <div className="reveal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-500 rounded-full text-[11px] font-bold mb-4 border border-red-100">😤 The Problem</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] mb-3 font-display">Sound familiar?</h2>
+            <p className="text-slate-400 max-w-md mx-auto">Most professionals waste hours every week juggling disconnected tools. Here&apos;s what that looks like:</p>
+          </div>
+
+          {/* Pain point cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            {[
+              {
+                emoji: '🔄',
+                stat: '5+',
+                statLabel: 'tools daily',
+                title: 'Tool overload is killing your flow',
+                desc: 'Job boards, CRM, email, analytics, notes — you\'re paying for 5 subscriptions and none of them talk to each other.',
+                items: ['LinkedIn', 'Indeed', 'Gmail', 'Notion', 'HubSpot'],
+              },
+              {
+                emoji: '😵‍💫',
+                stat: '40%',
+                statLabel: 'leads lost',
+                title: 'Opportunities slip through cracks',
+                desc: 'Which jobs did you apply to? When was the last follow-up? Important leads go cold because there\'s no system.',
+                items: ['Missed follow-ups', 'Lost contacts', 'No tracking', 'Forgotten apps'],
+              },
+              {
+                emoji: '⏰',
+                stat: '2h+',
+                statLabel: 'wasted daily',
+                title: 'Same email, different name, repeat',
+                desc: 'Copy-pasting the same template 50 times a week. Personalizing by hand. No idea who even opened it.',
+                items: ['Manual copy-paste', 'No personalization', 'Zero tracking', 'No sequences'],
+              },
+            ].map((p, i) => (
+              <div key={i} className={`bg-white rounded-2xl border border-red-100/60 p-6 text-left relative overflow-hidden hover:shadow-xl hover:shadow-red-100/50 transition-all duration-500 reveal delay-${i + 1} group`}>
+                {/* Red accent top bar */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-rose-400 rounded-t-2xl opacity-60 group-hover:opacity-100 transition-opacity" />
+
+                {/* Stat number */}
+                <div className="flex items-start justify-between mb-4">
+                  <span className="text-4xl">{p.emoji}</span>
+                  <div className="text-right">
+                    <p className="text-2xl font-extrabold text-red-500 font-display">{p.stat}</p>
+                    <p className="text-[10px] text-red-400 font-semibold uppercase tracking-wider">{p.statLabel}</p>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <h3 className="text-base font-bold text-[#1e293b] mb-2 font-display">{p.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-4">{p.desc}</p>
+
+                {/* Crossed-out items (the old way) */}
+                <div className="space-y-1.5">
+                  {p.items.map(item => (
+                    <div key={item} className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-red-400 text-[10px] font-bold">✕</span>
+                      </div>
+                      <span className="text-xs text-slate-400 line-through decoration-red-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-          <div className="mt-8 text-slate-300"><ChevronDown className="w-8 h-8 mx-auto animate-bounce"/></div>
+
+          {/* Transition to solution */}
+          <div className="mt-14 reveal">
+            <div className="inline-flex flex-col items-center gap-3">
+              <div className="w-px h-12 bg-gradient-to-b from-red-200 to-blue-400" />
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 transition-all cursor-default">
+                ✨ There&apos;s a better way
+              </div>
+              <div className="w-px h-8 bg-gradient-to-b from-blue-400 to-transparent" />
+            </div>
+          </div>
         </div>
       </section>
 
