@@ -22,12 +22,7 @@ const FAQ = [
   {q:"Is my data secure?",a:"Absolutely. We use Supabase with Row Level Security, ensuring your data is encrypted and only accessible by you."},
   {q:"Can I cancel anytime?",a:"Yes, cancel anytime from Settings. Your data is kept for 30 days after cancellation."},
 ];
-const FEATURES = [
-  {icon:Search,t:"Find Jobs & Leads Instantly",d:"Search thousands of jobs from Indeed and find leads with Hunter integration. Save anything to your CRM with one click.",tag:"Discover"},
-  {icon:Kanban,t:"Track Everything with Visual Pipeline",d:"Drag and drop Kanban board keeps you organized. Never lose track of where you stand with any opportunity.",tag:"CRM Pipeline"},
-  {icon:Mail,t:"AI-Powered Email Outreach",d:"Generate personalized emails with AI, send sequences, and track who opens and replies.",tag:"Outreach"},
-  {icon:BarChart3,t:"Insights That Drive Results",d:"Track conversion rates, best sources, and get AI-powered recommendations to improve your strategy.",tag:"Analytics"},
-];
+
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
@@ -162,25 +157,138 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-6 bg-gradient-to-b from-white to-slate-50/80 bg-dots">
+      <section id="features" className="py-24 px-6 bg-gradient-to-b from-white to-slate-50/80 bg-dots">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 reveal"><h2 className="text-3xl font-extrabold text-[#1e293b] font-display">Everything you need, in one place</h2><p className="text-slate-400 mt-2">Four powerful modules working together seamlessly</p></div>
-          <div className="space-y-20">
-            {FEATURES.map((f,i)=>(
-              <div key={i} className={`flex flex-col ${i%2===0?'lg:flex-row':'lg:flex-row-reverse'} items-center gap-12 reveal`}>
-                <div className="flex-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[11px] font-bold mb-3"><f.icon className="w-3.5 h-3.5"/>{f.tag}</span>
-                  <h3 className="text-2xl font-extrabold text-[#1e293b] mb-3 font-display">{f.t}</h3>
-                  <p className="text-slate-500 leading-relaxed">{f.d}</p>
-                  <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 mt-4 hover:gap-3 transition-all">Try it free <ArrowRight className="w-4 h-4"/></Link>
+          <div className="text-center mb-16 reveal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[11px] font-bold mb-4">✨ Features</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] font-display">Everything you need, in one place</h2>
+            <p className="text-slate-400 mt-3 max-w-md mx-auto">Four powerful modules working together seamlessly to supercharge your outreach</p>
+          </div>
+          <div className="space-y-24">
+
+            {/* Feature 1: Discover */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 reveal">
+              <div className="flex-1">
+                <Icon3D icon={Search} size="md" variant="blue" className="mb-4" />
+                <h3 className="text-2xl font-extrabold text-[#1e293b] mb-3 font-display">Find Jobs & Leads Instantly</h3>
+                <p className="text-slate-500 leading-relaxed mb-5">Search thousands of jobs from Indeed and find leads with Hunter integration. Save anything to your CRM with one click.</p>
+                <div className="space-y-2.5">
+                  {['Indeed + LinkedIn job aggregation','Hunter.io email finder built-in','One-click save to your pipeline','Smart filters: location, salary, skills'].map(f=>(
+                    <div key={f} className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0"/><span className="text-sm text-slate-600">{f}</span></div>
+                  ))}
                 </div>
-                <div className="flex-1 w-full">
-                  <div className="glass-card rounded-2xl p-8 h-56 flex items-center justify-center glow-blue">
-                    <Icon3D icon={f.icon} size="xl" variant={(['blue','indigo','violet','cyan'] as const)[i]} />
+                <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 mt-5 hover:gap-3 transition-all">Try it free <ArrowRight className="w-4 h-4"/></Link>
+              </div>
+              <div className="flex-1 w-full">
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-5 hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-400 rounded-l-2xl" />
+                  <div className="flex items-center gap-2 mb-4"><Search className="w-4 h-4 text-slate-400"/><div className="flex-1 h-9 bg-slate-100 rounded-lg flex items-center px-3"><span className="text-xs text-slate-400">Search &ldquo;React Developer in NYC&rdquo;...</span></div></div>
+                  {[{t:'Senior React Developer',c:'Google',l:'NYC',s:'$180k',tag:'New'},{t:'Full Stack Engineer',c:'Stripe',l:'Remote',s:'$160k',tag:'Hot'},{t:'Frontend Lead',c:'Airbnb',l:'SF',s:'$200k',tag:'Saved'}].map((j,i)=>(
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl hover:bg-blue-50/50 transition-colors mb-1 group/item">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-bold text-white ${['bg-blue-500','bg-cyan-500','bg-teal-500'][i]}`}>{j.c[0]}</div>
+                        <div><p className="text-sm font-semibold text-[#1e293b]">{j.t}</p><p className="text-[11px] text-slate-400">{j.c} · {j.l} · {j.s}</p></div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${['bg-blue-100 text-blue-600','bg-amber-100 text-amber-600','bg-emerald-100 text-emerald-600'][i]}`}>{j.tag}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100"><span className="text-[11px] text-slate-400">2,847 results found</span><span className="text-[11px] font-semibold text-blue-600">View all →</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 2: CRM Pipeline */}
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-12 reveal">
+              <div className="flex-1">
+                <Icon3D icon={Kanban} size="md" variant="cyan" className="mb-4" />
+                <h3 className="text-2xl font-extrabold text-[#1e293b] mb-3 font-display">Track Everything with Visual Pipeline</h3>
+                <p className="text-slate-500 leading-relaxed mb-5">Drag and drop Kanban board keeps you organized. Never lose track of where you stand with any opportunity.</p>
+                <div className="space-y-2.5">
+                  {['Drag & drop Kanban board','Custom pipeline stages','Follow-up reminders','Contact notes & activity log'].map(f=>(
+                    <div key={f} className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0"/><span className="text-sm text-slate-600">{f}</span></div>
+                  ))}
+                </div>
+                <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 mt-5 hover:gap-3 transition-all">Try it free <ArrowRight className="w-4 h-4"/></Link>
+              </div>
+              <div className="flex-1 w-full">
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-5 hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-teal-400 rounded-l-2xl" />
+                  <div className="grid grid-cols-4 gap-3">
+                    {[{s:'New',c:'bg-blue-500',n:12},{s:'Applied',c:'bg-amber-500',n:8},{s:'Interview',c:'bg-cyan-500',n:5},{s:'Offer',c:'bg-emerald-500',n:3}].map(col=>(
+                      <div key={col.s}>
+                        <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-slate-500 uppercase">{col.s}</span><span className={`w-5 h-5 ${col.c} rounded-full text-[9px] text-white flex items-center justify-center font-bold`}>{col.n}</span></div>
+                        {Array.from({length: Math.min(col.n, 3)}).map((_,j)=>(
+                          <div key={j} className="bg-slate-50 rounded-lg p-2 mb-1.5 border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all cursor-grab">
+                            <div className={`w-full h-0.5 ${col.c} rounded-full mb-1.5 opacity-60`}/>
+                            <div className="h-2 bg-slate-200 rounded w-3/4 mb-1"/>
+                            <div className="h-1.5 bg-slate-100 rounded w-1/2"/>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Feature 3: Email Outreach */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 reveal">
+              <div className="flex-1">
+                <Icon3D icon={Mail} size="md" variant="indigo" className="mb-4" />
+                <h3 className="text-2xl font-extrabold text-[#1e293b] mb-3 font-display">AI-Powered Email Outreach</h3>
+                <p className="text-slate-500 leading-relaxed mb-5">Generate personalized emails with AI, send sequences, and track who opens and replies.</p>
+                <div className="space-y-2.5">
+                  {['GPT-4 powered email generation','Automated follow-up sequences','Open & click tracking','A/B testing built-in'].map(f=>(
+                    <div key={f} className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0"/><span className="text-sm text-slate-600">{f}</span></div>
+                  ))}
+                </div>
+                <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 mt-5 hover:gap-3 transition-all">Try it free <ArrowRight className="w-4 h-4"/></Link>
+              </div>
+              <div className="flex-1 w-full">
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-5 hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-blue-400 rounded-l-2xl" />
+                  <div className="flex items-center gap-2 mb-3"><div className="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center"><Mail className="w-3.5 h-3.5 text-indigo-500"/></div><span className="text-xs font-bold text-[#1e293b]">AI Email Composer</span><span className="ml-auto px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[9px] font-bold rounded-full">AI Generated</span></div>
+                  <div className="space-y-2 mb-3">
+                    <div className="flex gap-2"><span className="text-[10px] text-slate-400 w-8 flex-shrink-0">To:</span><span className="text-[10px] text-[#1e293b] font-medium">sarah.k@google.com</span></div>
+                    <div className="flex gap-2"><span className="text-[10px] text-slate-400 w-8 flex-shrink-0">Subj:</span><span className="text-[10px] text-[#1e293b] font-medium">Quick question about the React role</span></div>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-3 mb-3 border border-slate-100">
+                    <p className="text-[11px] text-slate-600 leading-relaxed">Hi Sarah, I noticed you&apos;re looking for a Senior React Developer. With 5+ years building scalable apps at top startups, I&apos;d love to chat about how I can contribute to your team...</p>
+                  </div>
+                  <div className="flex items-center justify-between"><div className="flex gap-1.5">{['😊','📎','⏰'].map((e,i)=><span key={i} className="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center text-xs cursor-pointer hover:bg-slate-200 transition-colors">{e}</span>)}</div><button className="px-4 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[11px] font-bold rounded-lg shadow-md shadow-blue-500/20">Send ✨</button></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 4: Analytics */}
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-12 reveal">
+              <div className="flex-1">
+                <Icon3D icon={BarChart3} size="md" variant="emerald" className="mb-4" />
+                <h3 className="text-2xl font-extrabold text-[#1e293b] mb-3 font-display">Insights That Drive Results</h3>
+                <p className="text-slate-500 leading-relaxed mb-5">Track conversion rates, best sources, and get AI-powered recommendations to improve your strategy.</p>
+                <div className="space-y-2.5">
+                  {['Conversion funnel analytics','Source performance tracking','AI-powered suggestions','CSV export & reporting'].map(f=>(
+                    <div key={f} className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0"/><span className="text-sm text-slate-600">{f}</span></div>
+                  ))}
+                </div>
+                <Link href="/register" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 mt-5 hover:gap-3 transition-all">Try it free <ArrowRight className="w-4 h-4"/></Link>
+              </div>
+              <div className="flex-1 w-full">
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 p-5 hover:shadow-2xl transition-shadow duration-500 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-500 to-teal-400 rounded-l-2xl" />
+                  <div className="flex items-center justify-between mb-4"><span className="text-xs font-bold text-[#1e293b]">This Month</span><div className="flex gap-1">{['1W','1M','3M'].map((p,i)=><span key={p} className={`px-2 py-0.5 text-[9px] font-bold rounded-md cursor-pointer ${i===1?'bg-emerald-100 text-emerald-600':'text-slate-400 hover:bg-slate-100'}`}>{p}</span>)}</div></div>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    {[{l:'Emails Sent',v:'1,247',c:'+23%',clr:'text-emerald-500'},{l:'Open Rate',v:'67.2%',c:'+8%',clr:'text-emerald-500'},{l:'Replies',v:'189',c:'+31%',clr:'text-emerald-500'}].map(s=>(
+                      <div key={s.l} className="bg-slate-50 rounded-xl p-3 text-center"><p className="text-[9px] text-slate-400 font-medium uppercase">{s.l}</p><p className="text-lg font-extrabold text-[#1e293b] mt-0.5">{s.v}</p><p className={`text-[10px] font-bold ${s.clr}`}>{s.c}</p></div>
+                    ))}
+                  </div>
+                  {/* Mini bar chart */}
+                  <div className="flex items-end gap-1.5 h-16 px-2">{[40,65,45,80,60,90,75,55,85,70,95,65].map((h,i)=>(<div key={i} className="flex-1 rounded-t-sm transition-all hover:opacity-80" style={{height:`${h}%`,background:h>70?'linear-gradient(to top, #10b981, #34d399)':'#e2e8f0'}}/>))}</div>
+                  <div className="flex justify-between mt-1.5 px-2">{['Jan','','Mar','','May','','Jul','','Sep','','Nov',''].map((m,i)=><span key={i} className="text-[8px] text-slate-300 flex-1 text-center">{m}</span>)}</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
