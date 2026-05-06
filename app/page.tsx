@@ -368,18 +368,140 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-6 gradient-mesh">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-extrabold text-[#1e293b] mb-12 font-display reveal">Get started in 3 simple steps</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[{n:'01',icon:Search,t:'Search & Discover',d:'Search for jobs or leads using our powerful search. Filter by location, skills, salary.',v:'blue' as const},{n:'02',icon:Zap,t:'Save & Organize',d:'Save opportunities to your pipeline with one click. Organize with drag and drop.',v:'indigo' as const},{n:'03',icon:Mail,t:'Reach Out & Close',d:'Send AI-powered personalized emails. Follow up automatically. Land the opportunity.',v:'emerald' as const}].map(s=>(
-              <div key={s.n} className="text-center group reveal">
-                <span className="text-5xl font-extrabold text-blue-100 group-hover:text-blue-200 transition-colors">{s.n}</span>
-                <div className="flex justify-center mt-3 mb-4"><Icon3D icon={s.icon} size="lg" variant={s.v} /></div>
-                <h3 className="text-base font-bold text-[#1e293b] mb-2 font-display">{s.t}</h3>
-                <p className="text-sm text-slate-400">{s.d}</p>
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #f0f7ff 30%, #e8f2ff 50%, #f0f7ff 70%, #ffffff 100%)'
+        }} />
+        <div className="absolute inset-0 bg-dots opacity-40" />
+
+        <div className="max-w-5xl mx-auto relative z-10">
+          {/* Header */}
+          <div className="text-center mb-16 reveal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[11px] font-bold mb-4 border border-blue-100">🚀 How It Works</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] font-display">Get started in 3 simple steps</h2>
+            <p className="text-slate-400 mt-3 max-w-md mx-auto">From signup to your first deal — it takes less than 5 minutes</p>
+          </div>
+
+          {/* Steps with connecting line */}
+          <div className="relative">
+            {/* Connecting line (desktop only) */}
+            <div className="hidden md:block absolute top-[72px] left-[16.67%] right-[16.67%] h-0.5">
+              <div className="w-full h-full bg-gradient-to-r from-blue-200 via-cyan-200 to-emerald-200 rounded-full" />
+              <div className="absolute top-[-3px] left-0 w-2 h-2 bg-blue-400 rounded-full" />
+              <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-2 h-2 bg-cyan-400 rounded-full" />
+              <div className="absolute top-[-3px] right-0 w-2 h-2 bg-emerald-400 rounded-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Step 1 */}
+              <div className="reveal delay-1">
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-6 relative overflow-hidden hover:shadow-xl transition-all duration-500 group h-full">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-400 rounded-t-2xl" />
+
+                  <div className="flex items-center justify-between mb-5">
+                    <Icon3D icon={Search} size="md" variant="blue" />
+                    <span className="w-10 h-10 bg-blue-50 border-2 border-blue-200 rounded-full flex items-center justify-center text-sm font-extrabold text-blue-600 font-display">01</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-[#1e293b] mb-1.5 font-display">Search &amp; Discover</h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-500 rounded-full text-[10px] font-semibold mb-3">⚡ Takes 30 seconds</span>
+
+                  <p className="text-sm text-slate-400 leading-relaxed mb-4">Find jobs from Indeed or leads with Hunter. Smart filters help you find exactly what you need.</p>
+
+                  {/* Mini visual */}
+                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Search className="w-3 h-3 text-slate-300" />
+                      <div className="h-5 bg-slate-200/80 rounded flex-1" />
+                    </div>
+                    {[85, 70, 55].map((w, i) => (
+                      <div key={i} className="flex items-center gap-2 mb-1">
+                        <div className={`w-5 h-5 rounded ${['bg-blue-100', 'bg-cyan-100', 'bg-teal-100'][i]} flex-shrink-0`} />
+                        <div className="h-2 bg-slate-200/60 rounded" style={{ width: `${w}%` }} />
+                        <div className={`w-8 h-3 rounded-full ${['bg-blue-100', 'bg-amber-100', 'bg-emerald-100'][i]}`} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            ))}
+
+              {/* Step 2 */}
+              <div className="reveal delay-2">
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-6 relative overflow-hidden hover:shadow-xl transition-all duration-500 group h-full">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-t-2xl" />
+
+                  <div className="flex items-center justify-between mb-5">
+                    <Icon3D icon={Zap} size="md" variant="cyan" />
+                    <span className="w-10 h-10 bg-cyan-50 border-2 border-cyan-200 rounded-full flex items-center justify-center text-sm font-extrabold text-cyan-600 font-display">02</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-[#1e293b] mb-1.5 font-display">Save &amp; Organize</h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-cyan-50 text-cyan-500 rounded-full text-[10px] font-semibold mb-3">🖱️ One click to save</span>
+
+                  <p className="text-sm text-slate-400 leading-relaxed mb-4">Save to your pipeline instantly. Drag-and-drop Kanban keeps everything organized.</p>
+
+                  {/* Mini Kanban */}
+                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[{ l: 'New', c: 'bg-blue-400', n: 3 }, { l: 'Active', c: 'bg-cyan-400', n: 2 }, { l: 'Won', c: 'bg-emerald-400', n: 1 }].map(col => (
+                        <div key={col.l}>
+                          <div className="flex items-center gap-1 mb-1"><div className={`w-1.5 h-1.5 ${col.c} rounded-full`} /><span className="text-[8px] font-bold text-slate-400 uppercase">{col.l}</span></div>
+                          {Array.from({ length: col.n }).map((_, j) => (
+                            <div key={j} className="bg-white rounded p-1.5 mb-1 border border-slate-100 shadow-sm">
+                              <div className="h-1.5 bg-slate-200 rounded w-4/5 mb-0.5" />
+                              <div className="h-1 bg-slate-100 rounded w-3/5" />
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="reveal delay-3">
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-6 relative overflow-hidden hover:shadow-xl transition-all duration-500 group h-full">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-t-2xl" />
+
+                  <div className="flex items-center justify-between mb-5">
+                    <Icon3D icon={Mail} size="md" variant="emerald" />
+                    <span className="w-10 h-10 bg-emerald-50 border-2 border-emerald-200 rounded-full flex items-center justify-center text-sm font-extrabold text-emerald-600 font-display">03</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-[#1e293b] mb-1.5 font-display">Reach Out &amp; Close</h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-500 rounded-full text-[10px] font-semibold mb-3">🤖 AI writes for you</span>
+
+                  <p className="text-sm text-slate-400 leading-relaxed mb-4">AI generates personalized emails. Send, track opens, and follow up automatically.</p>
+
+                  {/* Mini email */}
+                  <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Mail className="w-3 h-3 text-emerald-400" />
+                      <span className="text-[8px] font-bold text-slate-400">AI Compose</span>
+                      <span className="ml-auto px-1.5 py-0.5 bg-emerald-100 rounded text-[7px] font-bold text-emerald-500">SENT ✓</span>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="h-1.5 bg-slate-200/80 rounded w-full" />
+                      <div className="h-1.5 bg-slate-200/60 rounded w-4/5" />
+                      <div className="h-1.5 bg-slate-200/40 rounded w-3/5" />
+                    </div>
+                    <div className="flex gap-1.5 mt-2">
+                      <div className="px-2 py-1 bg-emerald-500 rounded text-[7px] text-white font-bold">Send ✨</div>
+                      <div className="px-2 py-1 bg-slate-200 rounded text-[7px] text-slate-400 font-bold">Schedule</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-14 reveal">
+            <Link href="/register" className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 transition-all text-sm">
+              Start Your Free Account <ArrowRight className="w-4 h-4" />
+            </Link>
+            <p className="text-xs text-slate-400 mt-3">No credit card required · Free forever plan</p>
           </div>
         </div>
       </section>
