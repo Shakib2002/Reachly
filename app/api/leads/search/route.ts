@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Service not configured' }, { status: 503 });
     }
 
-    // Build a targeted search query
-    // e.g., "CEO at Microsoft in New York" or "HR Manager hiring"
+    // Build search query from user inputs
     let searchQuery = '';
     if (title && company) searchQuery = `${title} at ${company}`;
     else if (title) searchQuery = `${title} hiring`;
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
       query: searchQuery,
       page: '1',
       num_pages: '2',
-      country: 'us',
     });
 
     const response = await fetch(
@@ -72,44 +70,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ leads: [], totalResults: 0 });
     }
 
-    // Transform job postings into lead cards
+    // Transform job postings into REAL lead cards
+    // All data is 100% from the API — no fake names, no fabricated contacts
     const leads = jobs.map((job, index) => {
-      const domain = extractDomain(job.employer_website || job.employer_name);
-      const deptFromTitle = guessDepartment(job.job_title);
-      const roleFromTitle = job.job_title;
-
-      // Generate a plausible hiring contact based on job title
-      const contact = guessHiringContact(job.job_title, title || '');
+      const domain = extractDomain(job.employer_website || '');
+      const department = guessDepartment(job.job_title);
 
       return {
-        id: `lead-${index}-${job.employer_name}`,
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        position: contact.role,
+        id: `lead-${index}-${job.employer_name}-${Date.now()}`,
+        // Use REAL company name as the lead identity — NOT fake person names
+        firstName: job.employer_name,
+        lastName: '',
+        position: job.job_title,
         company: job.employer_name,
         domain,
         logo: job.employer_logo,
-        email: null, // Real email lookup would require paid API
+        email: null,        // Real — will be enriched via Find Email button
         emailStatus: 'unknown' as const,
-        linkedin: null,
-        department: deptFromTitle,
+        linkedin: null,     // Real — will be found via LinkedIn button
+        department,
         location: job.job_is_remote
           ? 'Remote'
-          : [job.job_city, job.job_state].filter(Boolean).join(', '),
+          : [job.job_city, job.job_state, job.job_country].filter(Boolean).join(', '),
         jobPosting: {
-          title: roleFromTitle,
+          title: job.job_title,
           applyLink: job.job_apply_link,
           postedAt: job.job_posted_at_datetime_utc,
           type: job.job_employment_type,
         },
-        confidence: 0, // Populated by enrichment API
+        confidence: 0,       // Real — 0 until enriched via waterfall API
         isReal: true,
       };
     });
 
-    // De-duplicate by company if needed
+    // De-duplicate by company
     const unique = leads.filter((lead, idx, arr) => {
-      if (!company) return true; // If searching by title, show all
+      if (!company) return true;
       return arr.findIndex(l => l.company === lead.company) === idx;
     });
 
@@ -130,9 +126,9 @@ function extractDomain(websiteOrName: string): string {
     if (websiteOrName.startsWith('http')) {
       return new URL(websiteOrName).hostname.replace('www.', '');
     }
-    return websiteOrName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+    return '';
   } catch {
-    return websiteOrName.toLowerCase().replace(/\s+/g, '') + '.com';
+    return '';
   }
 }
 
@@ -149,34 +145,4 @@ function guessDepartment(jobTitle: string): string {
   if (title.includes('data') || title.includes('analyst') || title.includes('scientist') || title.includes('bi')) return 'Data';
   if (title.includes('ops') || title.includes('operation') || title.includes('supply')) return 'Operations';
   return 'General';
-}
-
-function guessHiringContact(jobTitle: string, searchTitle: string): { firstName: string; lastName: string; role: string } {
-  const dept = guessDepartment(jobTitle);
-  const target = searchTitle || jobTitle;
-
-  // Map departments to typical hiring managers
-  const contactsByDept: Record<string, { role: string }> = {
-    'Engineering': { role: 'VP of Engineering' },
-    'Marketing': { role: 'Head of Marketing' },
-    'Sales': { role: 'VP of Sales' },
-    'HR': { role: 'HR Director' },
-    'Product': { role: 'VP of Product' },
-    'Design': { role: 'Head of Design' },
-    'Finance': { role: 'CFO' },
-    'Leadership': { role: target },
-    'Data': { role: 'Head of Data' },
-    'Operations': { role: 'COO' },
-    'General': { role: 'Hiring Manager' },
-  };
-
-  const firstNames = ['Sarah', 'James', 'Emily', 'Michael', 'Lisa', 'David', 'Maria', 'Robert', 'Jennifer', 'Christopher'];
-  const lastNames = ['Chen', 'Williams', 'Johnson', 'Brown', 'Garcia', 'Martinez', 'Anderson', 'Taylor', 'Wilson', 'Thomas'];
-
-  const seed = jobTitle.length % firstNames.length;
-  return {
-    firstName: firstNames[seed],
-    lastName: lastNames[(seed + 3) % lastNames.length],
-    role: contactsByDept[dept]?.role || 'Hiring Manager',
-  };
 }

@@ -90,15 +90,20 @@ export default function DiscoverPage() {
     setLeadsLoading(true); setLeadsError(''); setLeadsSearched(true); setVisibleLeadCount(10);
     addToHistory(leadCompany || leadTitle);
     try {
-      // Build enhanced query with seniority/industry
+      // Build enhanced query with seniority
       let enhancedTitle = leadTitle;
       if (leadSeniority && !leadTitle.toLowerCase().includes(leadSeniority.toLowerCase())) {
         enhancedTitle = leadSeniority === 'C-Suite' ? `CEO ${leadTitle}`.trim() : `${leadSeniority} ${leadTitle}`.trim();
       }
+      // Append industry to company query for better targeting
+      let enhancedCompany = leadCompany;
+      if (leadIndustry && !leadCompany.toLowerCase().includes(leadIndustry.toLowerCase())) {
+        enhancedCompany = leadCompany ? `${leadCompany} ${leadIndustry}` : leadIndustry;
+      }
       const res = await fetch('/api/leads/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company: leadCompany, title: enhancedTitle, location: leadLocation }),
+        body: JSON.stringify({ company: enhancedCompany, title: enhancedTitle, location: leadLocation }),
       });
       if (!res.ok) throw new Error('Failed to search leads');
       const data = await res.json();
@@ -106,7 +111,7 @@ export default function DiscoverPage() {
     } catch (err) {
       setLeadsError(err instanceof Error ? err.message : 'Something went wrong');
     } finally { setLeadsLoading(false); }
-  }, [leadCompany, leadTitle, leadLocation, leadSeniority, addToHistory]);
+  }, [leadCompany, leadTitle, leadLocation, leadSeniority, leadIndustry, addToHistory]);
 
   const exportLeadsCSV = () => {
     if (leads.length === 0) return;
@@ -153,8 +158,15 @@ export default function DiscoverPage() {
       } else {
         const lead = confirmModal.data;
         await addLead({
-          title: lead.position, company: lead.company,
-          email: lead.email, source: 'Hunter', status: 'new', notes: confirmNotes || undefined,
+          title: lead.position,
+          company: lead.company,
+          email: lead.email,
+          location: lead.location || undefined,
+          source: 'JSearch',
+          status: 'new',
+          notes: confirmNotes
+            ? confirmNotes
+            : `${lead.department ? `Dept: ${lead.department}` : ''}${lead.domain ? ` | Domain: ${lead.domain}` : ''}${lead.jobPosting?.applyLink ? ` | Job: ${lead.jobPosting.applyLink}` : ''}`.trim() || undefined,
         });
         setSavedLeadIds((prev) => new Set([...Array.from(prev), lead.id]));
       }

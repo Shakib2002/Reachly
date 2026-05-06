@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import {
-  Building2, ExternalLink, Mail, CheckCircle, Loader2,
+  ExternalLink, Mail, CheckCircle, Loader2,
   UserPlus, MapPin, Briefcase, Search, Link2, Phone,
-  Shield, ShieldCheck, ShieldAlert,
+  Shield, ShieldCheck, ShieldAlert, Globe,
 } from 'lucide-react';
 
 export interface LeadResult {
@@ -95,26 +95,35 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
     confidence: number;
     linkedin: string | null;
     phone: string | null;
+    first_name: string;
+    last_name: string;
+    title: string;
     source: string;
   } | null>(null);
 
-  const fullName = `${lead.firstName} ${lead.lastName}`;
-  const initials = `${lead.firstName?.[0] || ''}${lead.lastName?.[0] || ''}`.toUpperCase();
-  const avatarColor = getAvatarColor(fullName);
+  // Use company name as lead identity (real data, not fake person)
+  const companyName = lead.company;
+  const initials = companyName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const avatarColor = getAvatarColor(companyName);
 
   const displayEmail = enrichedData?.email || lead.email;
   const displayConfidence = enrichedData?.confidence || lead.confidence;
   const displayLinkedin = enrichedData?.linkedin || lead.linkedin;
   const displayPhone = enrichedData?.phone || null;
+  const enrichedContactName = enrichedData?.first_name
+    ? `${enrichedData.first_name} ${enrichedData.last_name}`.trim()
+    : null;
 
   const handleAdd = async () => {
     setSaving(true);
-    // Pass enriched data if available
     const enrichedLead = enrichedData ? {
       ...lead,
       email: enrichedData.email || lead.email,
       confidence: enrichedData.confidence,
       linkedin: enrichedData.linkedin || lead.linkedin,
+      firstName: enrichedData.first_name || lead.firstName,
+      lastName: enrichedData.last_name || lead.lastName,
+      position: enrichedData.title || lead.position,
     } : lead;
     await onAddToCRM(enrichedLead);
     setSaving(false);
@@ -128,8 +137,6 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          first_name: lead.firstName,
-          last_name: lead.lastName,
           company: lead.company,
           domain: lead.domain,
           role: lead.position,
@@ -142,16 +149,22 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
           confidence: data.result.confidence,
           linkedin: data.result.linkedin,
           phone: data.result.phone,
+          first_name: data.result.first_name || '',
+          last_name: data.result.last_name || '',
+          title: data.result.title || '',
           source: data.result.source,
         });
       }
     } catch {
-      setEnrichedData({ email: null, confidence: 0, linkedin: null, phone: null, source: 'failed' });
+      setEnrichedData({
+        email: null, confidence: 0, linkedin: null, phone: null,
+        first_name: '', last_name: '', title: '', source: 'failed',
+      });
     }
     setEnriching(false);
   };
 
-  const linkedinSearchUrl = `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${lead.position} ${lead.company}`)}`;
+  const linkedinSearchUrl = `https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(lead.company)}`;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 p-5 hover:shadow-md hover:border-blue-200 transition-all duration-200 group">
@@ -172,13 +185,15 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
 
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold text-[#1e293b] truncate group-hover:text-blue-600 transition-colors">
-            {fullName}
+            {companyName}
           </h3>
-          <p className="text-xs text-slate-500 truncate mt-0.5">{lead.position}</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
-            <span className="text-xs text-slate-400 truncate">{lead.company}</span>
-          </div>
+          <p className="text-xs text-slate-500 truncate mt-0.5">Hiring: {lead.position}</p>
+          {lead.domain && (
+            <div className="flex items-center gap-1.5 mt-1">
+              <Globe className="w-3 h-3 text-slate-400 flex-shrink-0" />
+              <span className="text-xs text-blue-500 truncate">{lead.domain}</span>
+            </div>
+          )}
           {lead.location && (
             <div className="flex items-center gap-1.5 mt-0.5">
               <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
@@ -197,7 +212,7 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
         </div>
       </div>
 
-      {/* Job Posting info */}
+      {/* Job Posting info (REAL data from JSearch) */}
       {lead.jobPosting && (
         <div className="mt-3 px-3 py-2 bg-slate-50 rounded-lg flex items-start gap-2">
           <Briefcase className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
@@ -214,7 +229,19 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
         </div>
       )}
 
-      {/* Email / Enrichment row */}
+      {/* Enriched Contact (only shown after enrichment — REAL data) */}
+      {enrichedContactName && (
+        <div className="mt-2 px-3 py-2 bg-emerald-50/50 rounded-lg border border-emerald-100">
+          <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mb-1">Enriched Contact</p>
+          <p className="text-xs font-semibold text-[#1e293b]">{enrichedContactName}</p>
+          {enrichedData?.title && <p className="text-[11px] text-slate-500">{enrichedData.title}</p>}
+          <span className="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded font-semibold mt-1 inline-block">
+            via {enrichedData?.source}
+          </span>
+        </div>
+      )}
+
+      {/* Email row */}
       <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-slate-50 rounded-lg">
         <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
         {displayEmail ? (
@@ -223,19 +250,14 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
           </a>
         ) : lead.domain ? (
           <span className="text-xs text-slate-400 truncate flex-1">
-            Find via <span className="text-blue-500 font-medium">{lead.domain}</span>
+            Click &quot;Find Email&quot; to discover contacts at <span className="text-blue-500 font-medium">{lead.domain}</span>
           </span>
         ) : (
           <span className="text-xs text-slate-400 italic flex-1">Click &quot;Find Email&quot; to enrich</span>
         )}
-        {enrichedData?.source && enrichedData.source !== 'failed' && (
-          <span className="text-[9px] px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded font-semibold border border-emerald-100">
-            via {enrichedData.source}
-          </span>
-        )}
       </div>
 
-      {/* Phone row (if enriched) */}
+      {/* Phone row (only if enriched — REAL data) */}
       {displayPhone && (
         <div className="flex items-center gap-2 mt-1.5 px-3 py-2 bg-slate-50 rounded-lg">
           <Phone className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
@@ -247,7 +269,7 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
 
       {/* Quick Action Buttons */}
       <div className="flex items-center gap-1.5 mt-3">
-        {/* Find Email */}
+        {/* Find Email — calls real waterfall API (Hunter → Skrapp → Apollo) */}
         {!displayEmail && (
           <button
             onClick={handleEnrich}
@@ -259,7 +281,7 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
           </button>
         )}
 
-        {/* LinkedIn Search */}
+        {/* LinkedIn Company Search */}
         <a
           href={displayLinkedin || linkedinSearchUrl}
           target="_blank"
@@ -270,7 +292,7 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
           {displayLinkedin ? 'View Profile' : 'Find on LinkedIn'}
         </a>
 
-        {/* Phone (if available) */}
+        {/* Phone (only if enriched) */}
         {displayPhone && (
           <a href={`tel:${displayPhone}`}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 transition-colors">
