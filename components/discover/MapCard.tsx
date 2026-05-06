@@ -5,7 +5,7 @@ import {
   Star, Phone, Globe, MapPin, ExternalLink,
   CheckCircle, Loader2, UserPlus, ImageOff,
   AlertCircle, TrendingUp, MessageCircle, Mail,
-  Search, Info, Link2,
+  Search, Info, Link2, Clock, AtSign,
 } from 'lucide-react';
 
 export interface MapBusiness {
@@ -23,6 +23,13 @@ export interface MapBusiness {
   mapsUrl: string;
   imageUrl: string | null;
   description: string | null;
+  openingHours?: string[];
+  socialMedia?: {
+    facebook: string | null;
+    instagram: string | null;
+    twitter: string | null;
+    linkedin: string | null;
+  };
   leadScore: number;
   hasPainKeywords: boolean;
   websiteMissing: boolean;
@@ -219,6 +226,49 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
             <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
             <span className="text-xs text-slate-500 line-clamp-1">{biz.address}</span>
           </div>
+
+          {/* Business Description */}
+          {biz.description && (
+            <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{biz.description}</p>
+          )}
+
+          {/* Opening Hours */}
+          {biz.openingHours && biz.openingHours.length > 0 && (
+            <div className="flex items-start gap-2">
+              <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+              <span className="text-[11px] text-slate-400 line-clamp-1">{biz.openingHours[0]}</span>
+            </div>
+          )}
+
+          {/* Social Media Links */}
+          {biz.socialMedia && (biz.socialMedia.facebook || biz.socialMedia.instagram || biz.socialMedia.twitter || biz.socialMedia.linkedin) && (
+            <div className="flex items-center gap-1.5">
+              {biz.socialMedia.facebook && (
+                <a href={biz.socialMedia.facebook} target="_blank" rel="noopener noreferrer"
+                  className="p-1 rounded border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Facebook">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                </a>
+              )}
+              {biz.socialMedia.instagram && (
+                <a href={biz.socialMedia.instagram} target="_blank" rel="noopener noreferrer"
+                  className="p-1 rounded border border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors" title="Instagram">
+                  <AtSign className="w-3 h-3" />
+                </a>
+              )}
+              {biz.socialMedia.twitter && (
+                <a href={biz.socialMedia.twitter} target="_blank" rel="noopener noreferrer"
+                  className="p-1 rounded border border-sky-200 bg-sky-50 text-sky-600 hover:bg-sky-100 transition-colors" title="Twitter/X">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+              )}
+              {biz.socialMedia.linkedin && (
+                <a href={biz.socialMedia.linkedin} target="_blank" rel="noopener noreferrer"
+                  className="p-1 rounded border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors" title="LinkedIn">
+                  <Link2 className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+          )}
 
           {/* Found email */}
           {foundEmail && foundEmail !== 'not-found' && (

@@ -136,6 +136,13 @@ export async function POST(request: NextRequest) {
         imageUrl: biz.imageUrl || null,
         description: biz.description || null,
         openingHours: biz.openingHours || [],
+        // Social media links — Apify returns these as arrays
+        socialMedia: {
+          facebook: biz.facebookUrl || (Array.isArray(biz.facebooks) && biz.facebooks[0]) || null,
+          instagram: biz.instagramUrl || (Array.isArray(biz.instagrams) && biz.instagrams[0]) || null,
+          twitter: biz.twitterUrl || (Array.isArray(biz.twitters) && biz.twitters[0]) || null,
+          linkedin: biz.linkedInUrl || (Array.isArray(biz.linkedIns) && biz.linkedIns[0]) || null,
+        },
         leadScore: calcLeadScore(biz, painKeywords),
         hasPainKeywords: checkPainKeywords(biz, painKeywords),
         websiteMissing: !biz.website,

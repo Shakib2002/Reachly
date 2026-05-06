@@ -142,12 +142,21 @@ export default function MapSearch() {
     if (unsaved.length === 0) { toast('All leads already saved'); return; }
     setBulkSaving(true);
     let count = 0;
+    let failed = 0;
     for (const biz of unsaved) {
-      await addToCRM(biz);
-      count++;
+      try {
+        await addToCRM(biz);
+        count++;
+      } catch {
+        failed++;
+      }
     }
     setBulkSaving(false);
-    toast.success(`Saved ${count} leads to CRM!`);
+    if (failed > 0) {
+      toast.success(`Saved ${count} leads (${failed} failed)`);
+    } else {
+      toast.success(`Saved ${count} leads to CRM!`);
+    }
   };
 
   const exportCSV = () => {

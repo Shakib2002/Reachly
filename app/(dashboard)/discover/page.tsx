@@ -4,12 +4,14 @@ import { useState, useCallback, useEffect } from 'react';
 import { useLeadStore } from '@/lib/store';
 import LeadCard, { LeadCardSkeleton, type LeadResult } from '@/components/discover/LeadCard';
 import MapSearch from '@/components/discover/MapSearch';
+import { SearchErrorBoundary } from '@/components/discover/SearchErrorBoundary';
 import toast from 'react-hot-toast';
 import {
   Search, MapPin, Briefcase, Users, Loader2, Compass,
   ChevronDown, Sparkles, AlertCircle, RefreshCw, X,
   Building2, DollarSign, ChevronRight, Map, Download,
-  Clock, History, Trash2,
+  Clock, History, Trash2, ArrowUpDown, CheckSquare, Square,
+  EyeOff, Zap, ListChecks,
 } from 'lucide-react';
 
 const SENIORITY_OPTIONS = ['C-Suite', 'VP', 'Director', 'Manager', 'Individual'];
@@ -67,6 +69,13 @@ export default function DiscoverPage() {
   const [leadsSearched, setLeadsSearched] = useState(false);
   const [savedLeadIds, setSavedLeadIds] = useState<Set<string>>(new Set());
   const [visibleLeadCount, setVisibleLeadCount] = useState(10);
+
+  // Sort, multi-select, exclude saved
+  const [sortBy, setSortBy] = useState<'relevance' | 'date' | 'salary_high' | 'salary_low' | 'company'>('relevance');
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
+  const [excludeSaved, setExcludeSaved] = useState(false);
+  const [bulkEnriching, setBulkEnriching] = useState(false);
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   // Save confirm modal
   const [confirmModal, setConfirmModal] = useState<{ data: LeadResult } | null>(null);
@@ -202,6 +211,100 @@ export default function DiscoverPage() {
       setConfirmSaving(false);
       setConfirmModal(null);
     }
+  };
+
+  // ─── Sort + Filter computed leads ───
+  const processedLeads = (() => {
+    let filtered = excludeSaved ? leads.filter(l => !savedLeadIds.has(l.id)) : leads;
+    switch (sortBy) {
+      case 'date':
+        filtered = [...filtered].sort((a, b) => {
+          const da = a.jobPosting?.postedAt ? new Date(a.jobPosting.postedAt).getTime() : 0;
+          const db = b.jobPosting?.postedAt ? new Date(b.jobPosting.postedAt).getTime() : 0;
+          return db - da;
+        });
+        break;
+      case 'salary_high':
+        filtered = [...filtered].sort((a, b) => ((b.salary?.max || b.salary?.min || 0) - (a.salary?.max || a.salary?.min || 0)));
+        break;
+      case 'salary_low':
+        filtered = [...filtered].sort((a, b) => {
+          const sa = a.salary?.min || a.salary?.max || Infinity;
+          const sb = b.salary?.min || b.salary?.max || Infinity;
+          return sa - sb;
+        });
+        break;
+      case 'company':
+        filtered = [...filtered].sort((a, b) => a.company.localeCompare(b.company));
+        break;
+      default: break; // relevance = API order
+    }
+    return filtered;
+  })();
+
+  // ─── Multi-select helpers ───
+  const toggleSelect = (id: string) => {
+    setSelectedLeadIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+  };
+  const selectAll = () => {
+    const visible = processedLeads.slice(0, visibleLeadCount);
+    setSelectedLeadIds(new Set(visible.map(l => l.id)));
+  };
+  const deselectAll = () => setSelectedLeadIds(new Set());
+
+  // ─── Batch Save Selected ───
+  const batchSaveSelected = async () => {
+    const toSave = processedLeads.filter(l => selectedLeadIds.has(l.id) && !savedLeadIds.has(l.id));
+    if (toSave.length === 0) { toast('No unsaved leads selected'); return; }
+    setBulkSaving(true);
+    let saved = 0;
+    for (const lead of toSave) {
+      try {
+        const salary = lead.salary && (lead.salary.min || lead.salary.max)
+          ? `$${lead.salary.min ? Math.round(lead.salary.min / 1000) + 'k' : '?'} - $${lead.salary.max ? Math.round(lead.salary.max / 1000) + 'k' : '?'}`
+          : undefined;
+        await addLead({
+          title: lead.position, company: lead.company, email: lead.email,
+          location: lead.location || undefined, salary,
+          source: lead.jobPosting?.publisher ? `JSearch (${lead.jobPosting.publisher})` : 'JSearch',
+          status: 'new', phone: null,
+          notes: [lead.department && `Dept: ${lead.department}`, lead.domain && `Domain: ${lead.domain}`, lead.jobPosting?.applyLink && `Apply: ${lead.jobPosting.applyLink}`].filter(Boolean).join(' | ') || undefined,
+        });
+        setSavedLeadIds(prev => new Set([...Array.from(prev), lead.id]));
+        saved++;
+      } catch { /* continue on error */ }
+    }
+    setBulkSaving(false);
+    setSelectedLeadIds(new Set());
+    toast.success(`Saved ${saved} leads to Job Pipeline!`);
+  };
+
+  // ─── Bulk Enrich All Visible ───
+  const bulkEnrichAll = async () => {
+    const targets = processedLeads.slice(0, visibleLeadCount).filter(l => !l.email && l.domain);
+    if (targets.length === 0) { toast('No leads to enrich (all have emails or no domain)'); return; }
+    setBulkEnriching(true);
+    let enriched = 0;
+    for (const lead of targets) {
+      try {
+        const res = await fetch('/api/leads/enrich', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain: lead.domain, company: lead.company }),
+        });
+        const data = await res.json();
+        if (data.contacts?.length > 0 && data.contacts[0].email) {
+          setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, email: data.contacts[0].email, confidence: data.contacts[0].confidence || 0 } : l));
+          enriched++;
+        }
+      } catch { /* continue */ }
+    }
+    setBulkEnriching(false);
+    toast.success(`Enriched ${enriched} of ${targets.length} leads with emails!`);
   };
 
   const selectClasses = 'w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all appearance-none';
@@ -419,25 +522,90 @@ export default function DiscoverPage() {
               </div>
             ) : leads.length > 0 ? (
               <>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-slate-400">Showing <span className="font-semibold text-[#1e293b]">{Math.min(visibleLeadCount, leads.length)}</span> of <span className="font-semibold text-[#1e293b]">{leads.length}</span> leads</p>
-                  <button onClick={exportLeadsCSV}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors">
-                    <Download className="w-3.5 h-3.5" /> Export CSV
-                  </button>
+                {/* ─── Results Toolbar ─── */}
+                <div className="bg-white rounded-xl border border-slate-200/60 p-3 mb-3 space-y-2">
+                  {/* Row 1: Count + Sort + Exclude */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-slate-400">
+                      Showing <span className="font-semibold text-[#1e293b]">{Math.min(visibleLeadCount, processedLeads.length)}</span> of <span className="font-semibold text-[#1e293b]">{processedLeads.length}</span> leads
+                      {excludeSaved && leads.length !== processedLeads.length && <span className="text-xs text-amber-500 ml-1">({leads.length - processedLeads.length} saved hidden)</span>}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {/* Sort */}
+                      <div className="relative">
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
+                          className="pl-7 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer">
+                          <option value="relevance">Relevance</option>
+                          <option value="date">Newest First</option>
+                          <option value="salary_high">Salary (High→Low)</option>
+                          <option value="salary_low">Salary (Low→High)</option>
+                          <option value="company">Company A-Z</option>
+                        </select>
+                        <ArrowUpDown className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                      </div>
+                      {/* Exclude Saved */}
+                      <button onClick={() => setExcludeSaved(!excludeSaved)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${excludeSaved ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-white text-slate-500 border-slate-200 hover:border-blue-200'}`}>
+                        <EyeOff className="w-3 h-3" /> {excludeSaved ? 'Showing Unsaved' : 'Hide Saved'}
+                      </button>
+                      {/* Export */}
+                      <button onClick={exportLeadsCSV}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-colors">
+                        <Download className="w-3 h-3" /> CSV
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Batch Actions */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                    <button onClick={selectedLeadIds.size > 0 ? deselectAll : selectAll}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-500 hover:bg-slate-100 transition-colors border border-slate-200">
+                      {selectedLeadIds.size > 0 ? <CheckSquare className="w-3 h-3 text-blue-500" /> : <Square className="w-3 h-3" />}
+                      {selectedLeadIds.size > 0 ? `${selectedLeadIds.size} Selected` : 'Select All'}
+                    </button>
+                    {selectedLeadIds.size > 0 && (
+                      <>
+                        <button onClick={batchSaveSelected} disabled={bulkSaving}
+                          className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors disabled:opacity-50">
+                          {bulkSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <ListChecks className="w-3 h-3" />}
+                          Save Selected ({selectedLeadIds.size})
+                        </button>
+                        <button onClick={deselectAll}
+                          className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors">
+                          Clear
+                        </button>
+                      </>
+                    )}
+                    <div className="ml-auto">
+                      <button onClick={bulkEnrichAll} disabled={bulkEnriching}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-100 transition-colors disabled:opacity-50">
+                        {bulkEnriching ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                        {bulkEnriching ? 'Enriching...' : 'Enrich All Emails'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                {/* ─── Lead Cards Grid ─── */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {leads.slice(0, visibleLeadCount).map((lead) => (
-                    <div key={lead.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <LeadCard lead={lead} onAddToCRM={saveLeadToCRM} isSaved={savedLeadIds.has(lead.id)} />
+                  {processedLeads.slice(0, visibleLeadCount).map((lead) => (
+                    <div key={lead.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300 relative">
+                      {/* Multi-select checkbox */}
+                      <button onClick={() => toggleSelect(lead.id)}
+                        className={`absolute top-3 left-3 z-10 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${selectedLeadIds.has(lead.id) ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white/80 border-slate-300 hover:border-blue-400'}`}>
+                        {selectedLeadIds.has(lead.id) && <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      </button>
+                      <SearchErrorBoundary fallbackLabel="This lead card failed to render">
+                        <LeadCard lead={lead} onAddToCRM={saveLeadToCRM} isSaved={savedLeadIds.has(lead.id)} />
+                      </SearchErrorBoundary>
                     </div>
                   ))}
                 </div>
-                {visibleLeadCount < leads.length && (
+                {visibleLeadCount < processedLeads.length && (
                   <div className="flex justify-center mt-6">
                     <button onClick={() => setVisibleLeadCount((p) => p + 10)}
                       className="flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:border-blue-200 transition-all shadow-sm">
-                      <ChevronRight className="w-4 h-4" /> Load More ({leads.length - visibleLeadCount} remaining)
+                      <ChevronRight className="w-4 h-4" /> Load More ({processedLeads.length - visibleLeadCount} remaining)
                     </button>
                   </div>
                 )}
