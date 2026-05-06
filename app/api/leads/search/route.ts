@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const params = new URLSearchParams({
       query: searchQuery,
       page: '1',
-      num_pages: '3',
+      num_pages: '10',
     });
 
     // Add optional filters from merged Job Search
