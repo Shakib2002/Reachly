@@ -55,7 +55,8 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
   }, []);
 
   return (
-    <header className="h-16 bg-white border-b border-[#e2e8f0] flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+    <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 relative">
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/10 to-transparent" />
       {/* Left: Mobile menu + Page title */}
       <div className="flex items-center gap-3">
         <button

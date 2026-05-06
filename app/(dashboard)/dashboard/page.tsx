@@ -172,7 +172,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 max-w-[1400px]">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl p-6 lg:p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 rounded-2xl p-6 lg:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-500/15">
         {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/[0.06] rounded-full -translate-y-1/3 translate-x-1/4" />
         <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-white/[0.04] rounded-full translate-y-1/2" />
@@ -227,7 +227,7 @@ export default function DashboardPage() {
           ? Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-[#e2e8f0] p-5"
+                className="bg-white rounded-2xl border border-slate-200/60 p-5"
               >
                 <div className="flex items-center justify-between mb-4">
                   <Skeleton className="w-10 h-10 rounded-xl" />
@@ -240,8 +240,14 @@ export default function DashboardPage() {
           : statCards.map((stat) => (
               <div
                 key={stat.title}
-                className="bg-white rounded-2xl border border-[#e2e8f0] p-5 hover:shadow-md hover:border-slate-300/80 transition-all duration-200 group"
+                className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-lg hover:border-slate-300/80 transition-all duration-300 group relative overflow-hidden"
               >
+                <div className={`absolute top-0 left-0 w-1 h-full rounded-l-2xl ${
+                  stat.variant === 'blue' ? 'bg-gradient-to-b from-blue-500 to-blue-400' :
+                  stat.variant === 'amber' ? 'bg-gradient-to-b from-amber-500 to-amber-400' :
+                  stat.variant === 'purple' ? 'bg-gradient-to-b from-purple-500 to-purple-400' :
+                  'bg-gradient-to-b from-emerald-500 to-emerald-400'
+                }`} />
                 <div className="flex items-center justify-between mb-3">
                   <Icon3D icon={stat.icon} size="sm" variant={stat.variant} />
                   {(() => {
@@ -272,7 +278,7 @@ export default function DashboardPage() {
       {/* Quick Actions + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
           <h3 className="text-sm font-bold text-[#1e293b] uppercase tracking-wider mb-4">
             Quick Actions
           </h3>
@@ -309,7 +315,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-[#e2e8f0] p-5">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#1e293b] uppercase tracking-wider">
               Recent Activity
@@ -367,7 +373,7 @@ export default function DashboardPage() {
 
       {/* Upcoming Follow-ups */}
       {followUps.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#1e293b] uppercase tracking-wider flex items-center gap-2">
               <Bell className="w-4 h-4 text-amber-500" />Upcoming Follow-ups
@@ -401,7 +407,7 @@ export default function DashboardPage() {
       )}
 
       {/* Recent Leads Table */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <h3 className="text-sm font-bold text-[#1e293b] uppercase tracking-wider">
             Recent Leads

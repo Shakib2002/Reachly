@@ -48,11 +48,11 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const isActive = (href: string) => pathname === href || (href !== '/discover' && href !== '/dashboard' && pathname.startsWith(href));
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative z-10">
       {/* Logo Section */}
       <div className={`px-5 pt-6 pb-4 ${collapsed ? 'px-3' : ''}`}>
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 ring-1 ring-white/10">
             <span className="text-white text-lg font-black">R</span>
           </div>
           {!collapsed && (
@@ -83,8 +83,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               title={collapsed ? item.name : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
                 active
-                  ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/25'
-                  : 'text-gray-400 hover:text-white hover:bg-white/[0.08]'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/25'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
               } ${collapsed ? 'justify-center px-0' : ''}`}
             >
               {active && (
@@ -102,7 +102,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* Bottom Section */}
-      <div className={`mt-auto border-t border-white/[0.08] ${collapsed ? 'px-2' : 'px-3'} py-4 space-y-3`}>
+      <div className={`mt-auto border-t border-white/[0.06] ${collapsed ? 'px-2' : 'px-3'} py-4 space-y-3`}>
         {/* Take Tour */}
         {!collapsed && <TourTrigger />}
 
@@ -124,7 +124,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
         {/* User Profile */}
         <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : 'px-2'}`}>
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ring-2 ring-white/10">
+          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ring-2 ring-blue-400/20 shadow-md shadow-blue-500/20">
             {initials || 'U'}
           </div>
           {!collapsed && (
@@ -141,7 +141,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
         {/* Plan badge */}
         {!collapsed && (
-          <div className="mx-2 px-3 py-2.5 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl border border-blue-500/20">
+          <div className="mx-2 px-3 py-2.5 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/20 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-blue-400" />
