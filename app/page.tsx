@@ -615,21 +615,120 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer id="about" className="bg-[#0a1628] text-white pt-0 pb-8 px-6">
-        <div className="h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 pt-16">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-3"><Image src="/images/logo.png" alt="Reachly" width={32} height={32} className="rounded-xl" /><span className="text-lg font-bold font-display">Reachly</span></div>
-            <p className="text-slate-400 text-xs leading-relaxed mb-4">All-in-one outreach platform. Find prospects, send AI emails, and close more deals.</p>
-            <div className="flex gap-2">{['𝕏','in','◆'].map((s,i)=><div key={i} className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-xs hover:bg-white/10 hover:border-white/20 cursor-pointer transition-all">{s}</div>)}</div>
-          </div>
-          {[{t:'Product',l:['Features','Pricing','Changelog','Roadmap']},{t:'Company',l:['About','Blog','Careers','Press']},{t:'Legal',l:['Privacy','Terms','Cookies','Contact']}].map(c=>(
-            <div key={c.t}><h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-4">{c.t}</h4><ul className="space-y-2.5">{c.l.map(l=><li key={l}><a href="#" className="text-sm text-slate-400 hover:text-blue-300 transition-colors">{l}</a></li>)}</ul></div>
-          ))}
+      <footer id="about" className="relative overflow-hidden">
+        {/* Dark gradient background */}
+        <div className="absolute inset-0 bg-[#060d1b]" />
+        <div className="absolute inset-0" style={{
+          background: 'radial-gradient(ellipse at 20% 0%, rgba(37,99,235,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(56,189,248,0.05) 0%, transparent 50%)'
+        }} />
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'radial-gradient(circle, rgba(148,163,184,0.4) 1px, transparent 1px)',
+          backgroundSize: '32px 32px'
+        }} />
+
+        {/* Glowing top line */}
+        <div className="relative">
+          <div className="h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-blue-400/20 to-transparent blur-sm" />
         </div>
-        <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-6xl mx-auto">
-          <p className="text-xs text-slate-500">© 2026 Reachly. All rights reserved.</p>
-          <p className="text-xs text-slate-500">Made with ❤️ for ambitious professionals</p>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-6">
+          {/* Main footer grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 py-16">
+            {/* Brand column - wider */}
+            <div className="md:col-span-4">
+              <div className="flex items-center gap-2.5 mb-4">
+                <Image src="/images/logo.png" alt="Reachly" width={36} height={36} className="rounded-xl shadow-lg shadow-blue-500/20" />
+                <span className="text-xl font-bold font-display text-white">Reachly</span>
+              </div>
+              <p className="text-slate-400 text-sm leading-relaxed mb-5">The all-in-one outreach platform for ambitious professionals. Find prospects, send AI-powered emails, and close more deals — faster.</p>
+              
+              {/* Newsletter */}
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-slate-300 mb-2">Stay in the loop</p>
+                <div className="flex gap-2">
+                  <input type="email" placeholder="your@email.com" className="flex-1 px-3.5 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all" />
+                  <button className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-blue-600/20">Subscribe</button>
+                </div>
+              </div>
+
+              {/* Social icons */}
+              <div className="flex gap-2">
+                {[
+                  {icon: '𝕏', label: 'Twitter'},
+                  {icon: 'in', label: 'LinkedIn'},
+                  {icon: '◆', label: 'Product Hunt'},
+                  {icon: '▶', label: 'YouTube'},
+                ].map((s, i) => (
+                  <div key={i} className="w-9 h-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-xs text-slate-400 hover:bg-blue-600/20 hover:border-blue-500/30 hover:text-blue-300 cursor-pointer transition-all" title={s.label}>
+                    {s.icon}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Link columns */}
+            <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
+              {[
+                {t: 'Product', l: [
+                  {n: 'Features', h: '#features'},
+                  {n: 'Pricing', h: '#pricing'},
+                  {n: 'Integrations', h: '#'},
+                  {n: 'Changelog', h: '#'},
+                  {n: 'Roadmap', h: '#'},
+                ]},
+                {t: 'Solutions', l: [
+                  {n: 'Job Seekers', h: '#'},
+                  {n: 'Freelancers', h: '#'},
+                  {n: 'Sales Teams', h: '#'},
+                  {n: 'Recruiters', h: '#'},
+                  {n: 'Agencies', h: '#'},
+                ]},
+                {t: 'Resources', l: [
+                  {n: 'Blog', h: '#'},
+                  {n: 'Help Center', h: '#'},
+                  {n: 'API Docs', h: '#'},
+                  {n: 'Templates', h: '#'},
+                  {n: 'Community', h: '#'},
+                ]},
+                {t: 'Company', l: [
+                  {n: 'About Us', h: '#'},
+                  {n: 'Careers', h: '#'},
+                  {n: 'Press Kit', h: '#'},
+                  {n: 'Privacy', h: '#'},
+                  {n: 'Terms', h: '#'},
+                ]},
+              ].map(c => (
+                <div key={c.t}>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-4">{c.t}</h4>
+                  <ul className="space-y-2.5">
+                    {c.l.map(l => (
+                      <li key={l.n}><a href={l.h} className="text-sm text-slate-400 hover:text-blue-300 transition-colors">{l.n}</a></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="border-t border-white/5 py-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <p className="text-xs text-slate-500">© 2026 Reachly. All rights reserved.</p>
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-semibold text-emerald-400">All Systems Operational</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500">Made with ❤️ for ambitious professionals</span>
+                <button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-600/20 hover:border-blue-500/30 hover:text-blue-300 transition-all" title="Back to top">
+                  ↑
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
