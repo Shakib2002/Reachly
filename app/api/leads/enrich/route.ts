@@ -68,13 +68,15 @@ export async function POST(request: NextRequest) {
       } catch { /* Hunter failed, try next */ }
     }
 
-    // Provider 2: Skrapp.io — Email Finder
+    // Provider 2: Skrapp.io — Email Finder (works with domain search)
     const skrappKey = process.env.SKRAPP_API_KEY;
-    if (skrappKey && first_name && last_name) {
+    if (skrappKey && targetDomain) {
       try {
-        const res = await fetch('https://api.skrapp.io/api/v2/find?firstName=' +
-          encodeURIComponent(first_name) + '&lastName=' + encodeURIComponent(last_name) +
-          '&domain=' + encodeURIComponent(targetDomain), {
+        // Skrapp domain search — find emails at a domain without needing person names
+        const skrappUrl = first_name && last_name
+          ? `https://api.skrapp.io/api/v2/find?firstName=${encodeURIComponent(first_name)}&lastName=${encodeURIComponent(last_name)}&domain=${encodeURIComponent(targetDomain)}`
+          : `https://api.skrapp.io/api/v2/find?domain=${encodeURIComponent(targetDomain)}`;
+        const res = await fetch(skrappUrl, {
           headers: { 'X-Access-Key': skrappKey, 'Content-Type': 'application/json' },
           signal: AbortSignal.timeout(8000),
         });
@@ -84,9 +86,9 @@ export async function POST(request: NextRequest) {
           contacts.push({
             email: data.email,
             confidence: data.accuracy || 75,
-            first_name: first_name,
-            last_name: last_name,
-            position: role || '',
+            first_name: data.firstName || first_name || '',
+            last_name: data.lastName || last_name || '',
+            position: data.title || role || '',
             company: company || targetDomain,
             domain: targetDomain,
             linkedin: data.linkedin || null,

@@ -31,7 +31,7 @@ interface JSearchJob {
 
 export async function POST(request: NextRequest) {
   try {
-    const { company, title, location, jobType, datePosted } = await request.json();
+    const { company, title, location, jobType, datePosted, maxResults = 50 } = await request.json();
 
     const rateLimited = await applyRateLimit(request, 'search');
     if (rateLimited) return rateLimited;
@@ -52,10 +52,13 @@ export async function POST(request: NextRequest) {
     else if (company) searchQuery = `jobs at ${company}`;
     if (location) searchQuery += ` in ${location}`;
 
+    // Dynamic num_pages based on maxResults (each page = ~10 results)
+    const numPages = Math.min(Math.ceil(maxResults / 10), 10);
+
     const params = new URLSearchParams({
       query: searchQuery,
       page: '1',
-      num_pages: '10',
+      num_pages: String(numPages),
     });
 
     // Add optional filters from merged Job Search
@@ -160,9 +163,12 @@ export async function POST(request: NextRequest) {
       return arr.findIndex(l => l.company === lead.company) === idx;
     });
 
+    // Limit to requested maxResults
+    const limited = unique.slice(0, maxResults);
+
     return NextResponse.json({
-      leads: unique,
-      totalResults: unique.length,
+      leads: limited,
+      totalResults: limited.length,
       source: 'jsearch',
     });
   } catch (error) {

@@ -14,6 +14,26 @@ import {
 const SENIORITY_OPTIONS = ['C-Suite', 'VP', 'Director', 'Manager', 'Individual'];
 const INDUSTRY_OPTIONS = ['Technology', 'Healthcare', 'Finance', 'Marketing', 'SaaS', 'E-commerce', 'Education'];
 
+const TITLE_SUGGESTIONS = [
+  'Software Engineer', 'React Developer', 'Product Manager', 'Data Scientist',
+  'UX Designer', 'DevOps Engineer', 'Marketing Manager', 'Sales Manager',
+  'Full Stack Developer', 'Frontend Developer', 'Backend Developer', 'Mobile Developer',
+  'Machine Learning Engineer', 'Cloud Architect', 'CTO', 'CEO', 'VP Engineering',
+  'HR Manager', 'Project Manager', 'Business Analyst', 'QA Engineer',
+];
+const COMPANY_SUGGESTIONS = [
+  'Google', 'Microsoft', 'Amazon', 'Apple', 'Meta', 'Netflix', 'Stripe',
+  'Salesforce', 'Adobe', 'Shopify', 'Spotify', 'Uber', 'Airbnb', 'Tesla',
+  'IBM', 'Oracle', 'SAP', 'HubSpot', 'Slack', 'Zoom', 'Twilio', 'Datadog',
+];
+const LOCATION_SUGGESTIONS = [
+  'Remote', 'New York, NY', 'San Francisco, CA', 'Los Angeles, CA', 'Chicago, IL',
+  'Austin, TX', 'Seattle, WA', 'Boston, MA', 'Denver, CO', 'Miami, FL',
+  'London, UK', 'Berlin, Germany', 'Toronto, Canada', 'Bangalore, India',
+  'Singapore', 'Sydney, Australia', 'Dubai, UAE', 'Amsterdam, Netherlands',
+];
+const MAX_RESULTS_OPTIONS = [25, 50, 100];
+
 type Tab = 'jobs' | 'leads';
 
 export default function DiscoverPage() {
@@ -26,6 +46,7 @@ export default function DiscoverPage() {
   const [jobLocation, setJobLocation] = useState('');
   const [jobType, setJobType] = useState('all');
   const [datePosted, setDatePosted] = useState('all');
+  const [maxResults, setMaxResults] = useState(50);
   const [leadSeniority, setLeadSeniority] = useState('');
   const [leadIndustry, setLeadIndustry] = useState('');
   const [leads, setLeads] = useState<LeadResult[]>([]);
@@ -81,6 +102,7 @@ export default function DiscoverPage() {
           location: jobLocation,
           jobType: jobType !== 'all' ? jobType : undefined,
           datePosted: datePosted !== 'all' ? datePosted : undefined,
+          maxResults,
         }),
       });
       if (!res.ok) throw new Error('Failed to search');
@@ -89,7 +111,7 @@ export default function DiscoverPage() {
     } catch (err) {
       setLeadsError(err instanceof Error ? err.message : 'Something went wrong');
     } finally { setLeadsLoading(false); }
-  }, [jobTitle, jobCompany, jobLocation, jobType, datePosted, leadSeniority, leadIndustry, addToHistory]);
+  }, [jobTitle, jobCompany, jobLocation, jobType, datePosted, maxResults, leadSeniority, leadIndustry, addToHistory]);
 
   const exportLeadsCSV = () => {
     if (leads.length === 0) return;
@@ -181,29 +203,38 @@ export default function DiscoverPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)}
+                  <input type="text" list="title-suggestions" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && searchLeads()}
                     placeholder="Job Title (e.g. React Developer, CEO)"
                     className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+                  <datalist id="title-suggestions">
+                    {TITLE_SUGGESTIONS.map(s => <option key={s} value={s} />)}
+                  </datalist>
                 </div>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="text" value={jobCompany} onChange={(e) => setJobCompany(e.target.value)}
+                  <input type="text" list="company-suggestions" value={jobCompany} onChange={(e) => setJobCompany(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && searchLeads()}
                     placeholder="Company (e.g. Google, Stripe)"
                     className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+                  <datalist id="company-suggestions">
+                    {COMPANY_SUGGESTIONS.map(s => <option key={s} value={s} />)}
+                  </datalist>
                 </div>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input type="text" value={jobLocation} onChange={(e) => setJobLocation(e.target.value)}
+                  <input type="text" list="location-suggestions" value={jobLocation} onChange={(e) => setJobLocation(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && searchLeads()}
                     placeholder="Location (e.g. Remote, New York)"
                     className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-[#1e293b] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+                  <datalist id="location-suggestions">
+                    {LOCATION_SUGGESTIONS.map(s => <option key={s} value={s} />)}
+                  </datalist>
                 </div>
               </div>
 
               {/* Row 2: Filters (Job Type + Date + Search Button) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="relative">
                   <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={selectClasses} aria-label="Job type filter">
                     <option value="all">All Types</option>
@@ -220,6 +251,14 @@ export default function DiscoverPage() {
                     <option value="today">Today</option>
                     <option value="week">This Week</option>
                     <option value="month">This Month</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+                <div className="relative">
+                  <select value={maxResults} onChange={(e) => setMaxResults(Number(e.target.value))} className={selectClasses} aria-label="Max results">
+                    {MAX_RESULTS_OPTIONS.map(n => (
+                      <option key={n} value={n}>Max {n} results</option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
