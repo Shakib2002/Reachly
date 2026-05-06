@@ -73,29 +73,31 @@ export default function LandingPage() {
         </div>}
       </nav>
 
-      {/* Hero — Inspired by Instantly.ai's premium gradient */}
+      {/* Hero — Clean blue monochromatic gradient */}
       <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-        {/* Bold gradient background */}
+        {/* Smooth blue gradient — navy to sky to white */}
         <div className="absolute inset-0" style={{
-          background: 'linear-gradient(180deg, #0c1445 0%, #1a3a8a 30%, #2563eb 55%, #60a5fa 75%, #dbeafe 92%, #ffffff 100%)'
+          background: 'linear-gradient(180deg, #0a1628 0%, #0f2557 20%, #1e40af 42%, #3b82f6 60%, #93c5fd 78%, #dbeafe 90%, #ffffff 100%)'
         }} />
-        {/* Animated gradient orbs */}
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full opacity-30" style={{
-          background: 'radial-gradient(circle, rgba(99,102,241,0.5) 0%, transparent 70%)',
+        {/* Orb 1 — Deep blue glow, top-left */}
+        <div className="absolute -top-20 left-[15%] w-[700px] h-[700px] rounded-full opacity-25" style={{
+          background: 'radial-gradient(circle, rgba(37,99,235,0.6) 0%, transparent 65%)',
           animation: 'orb-float-1 20s ease-in-out infinite'
         }} />
-        <div className="absolute top-20 right-1/4 w-[500px] h-[500px] rounded-full opacity-20" style={{
-          background: 'radial-gradient(circle, rgba(168,85,247,0.4) 0%, transparent 70%)',
+        {/* Orb 2 — Cyan accent, top-right */}
+        <div className="absolute top-10 right-[10%] w-[500px] h-[500px] rounded-full opacity-20" style={{
+          background: 'radial-gradient(circle, rgba(56,189,248,0.5) 0%, transparent 65%)',
           animation: 'orb-float-2 25s ease-in-out infinite'
         }} />
-        <div className="absolute bottom-0 left-1/2 w-[800px] h-[400px] rounded-full opacity-20" style={{
-          background: 'radial-gradient(ellipse, rgba(96,165,250,0.6) 0%, transparent 70%)',
+        {/* Orb 3 — Bright blue wash, bottom-center */}
+        <div className="absolute -bottom-20 left-[40%] w-[900px] h-[500px] rounded-full opacity-15" style={{
+          background: 'radial-gradient(ellipse, rgba(96,165,250,0.7) 0%, transparent 60%)',
           animation: 'orb-float-3 18s ease-in-out infinite'
         }} />
         {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
-          backgroundSize: '64px 64px'
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)',
+          backgroundSize: '80px 80px'
         }} />
         
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 relative z-10">
@@ -108,7 +110,7 @@ export default function LandingPage() {
               <button className="px-6 py-3.5 border border-white/30 text-white font-semibold rounded-full hover:bg-white/10 backdrop-blur-sm text-sm flex items-center gap-2 transition-all"><Play className="w-4 h-4"/>Watch Demo</button>
             </div>
             <div className="flex items-center gap-3 mt-8 justify-center lg:justify-start hero-animate hero-animate-delay-4">
-              <div className="flex -space-x-2">{['bg-blue-300','bg-emerald-300','bg-violet-300','bg-amber-300','bg-rose-300'].map((c,i)=><div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white/50 flex items-center justify-center text-white text-[10px] font-bold shadow-lg`}>{String.fromCharCode(65+i)}</div>)}</div>
+              <div className="flex -space-x-2">{['bg-blue-300','bg-cyan-300','bg-sky-300','bg-teal-300','bg-emerald-300'].map((c,i)=><div key={i} className={`w-8 h-8 ${c} rounded-full border-2 border-white/50 flex items-center justify-center text-white text-[10px] font-bold shadow-lg`}>{String.fromCharCode(65+i)}</div>)}</div>
               <div><div className="flex gap-0.5">{Array.from({length:5}).map((_,i)=><Star key={i} className="w-3.5 h-3.5 fill-amber-300 text-amber-300"/>)}</div><p className="text-[11px] text-blue-200/70 mt-0.5">Join 2,000+ professionals · 4.9/5</p></div>
             </div>
           </div>
@@ -116,8 +118,8 @@ export default function LandingPage() {
           <div className="flex-1 relative max-w-lg w-full hero-animate hero-animate-delay-5">
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/20 border border-white/20 p-4 transform rotate-1 hover:rotate-0 transition-transform duration-500">
               <div className="flex gap-1.5 mb-3">{['bg-red-400','bg-amber-400','bg-emerald-400'].map((c,i)=><div key={i} className={`w-2.5 h-2.5 ${c} rounded-full`}/>)}</div>
-              <div className="grid grid-cols-4 gap-2 mb-3">{['New','Applied','Interview','Offer'].map((s,i)=><div key={s} className="text-center"><p className="text-[9px] font-bold text-blue-200/60 uppercase mb-1">{s}</p><div className={`h-1 rounded-full ${['bg-blue-400','bg-amber-400','bg-violet-400','bg-emerald-400'][i]}`}/></div>)}</div>
-              {[{c:'Google',t:'Senior React Dev',s:'bg-blue-500/20 text-blue-200'},{c:'Microsoft',t:'Full Stack Engineer',s:'bg-amber-500/20 text-amber-200'},{c:'Stripe',t:'Frontend Developer',s:'bg-violet-500/20 text-violet-200'}].map((j,i)=>(
+              <div className="grid grid-cols-4 gap-2 mb-3">{['New','Applied','Interview','Offer'].map((s,i)=><div key={s} className="text-center"><p className="text-[9px] font-bold text-blue-200/60 uppercase mb-1">{s}</p><div className={`h-1 rounded-full ${['bg-blue-400','bg-amber-400','bg-cyan-400','bg-emerald-400'][i]}`}/></div>)}</div>
+              {[{c:'Google',t:'Senior React Dev',s:'bg-blue-500/20 text-blue-200'},{c:'Microsoft',t:'Full Stack Engineer',s:'bg-amber-500/20 text-amber-200'},{c:'Stripe',t:'Frontend Developer',s:'bg-cyan-500/20 text-cyan-200'}].map((j,i)=>(
                 <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 mb-1.5 hover:bg-white/10 transition-colors">
                   <div className="flex items-center gap-2.5"><div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-[10px] font-bold text-blue-200">{j.c[0]}</div><div><p className="text-xs font-semibold text-white">{j.t}</p><p className="text-[10px] text-blue-300/60">{j.c}</p></div></div>
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${j.s}`}>{['New','Applied','Interview'][i]}</span>
