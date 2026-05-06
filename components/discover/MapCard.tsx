@@ -5,7 +5,7 @@ import {
   Star, Phone, Globe, MapPin, ExternalLink,
   CheckCircle, Loader2, UserPlus, ImageOff,
   AlertCircle, TrendingUp, MessageCircle, Mail,
-  Search, Info,
+  Search, Info, Link2,
 } from 'lucide-react';
 
 export interface MapBusiness {
@@ -277,6 +277,12 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
           {foundEmail === 'not-found' && (
             <span className="text-[10px] text-slate-400 ml-1">No email found</span>
           )}
+          <a href={`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(biz.name)}`}
+            target="_blank" rel="noopener noreferrer"
+            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+            title="Find on LinkedIn">
+            <Link2 className="w-3.5 h-3.5" />
+          </a>
           <a href={biz.mapsUrl} target="_blank" rel="noopener noreferrer"
             className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-blue-500 hover:bg-blue-50 hover:border-blue-200 transition-colors ml-auto"
             title="Open in Google Maps">
