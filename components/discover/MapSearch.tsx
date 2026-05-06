@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useLeadStore } from '@/lib/store';
+import { useClientStore } from '@/lib/clientStore';
 import MapCard, { type MapBusiness } from './MapCard';
 import toast from 'react-hot-toast';
 import {
@@ -31,7 +31,7 @@ const POPULAR_CITIES = [
 const PAIN_KEYWORDS = ['slow', 'bad service', 'late response', 'not professional', 'no response', 'rude'];
 
 export default function MapSearch() {
-  const { addLead } = useLeadStore();
+  const { addClient } = useClientStore();
 
   // Form state
   const [keyword, setKeyword] = useState('');
@@ -119,18 +119,21 @@ export default function MapSearch() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addToCRM = async (biz: MapBusiness & { enrichedEmail?: string }) => {
-    await addLead({
-      title: biz.name,
-      company: biz.category || 'Local Business',
-      location: biz.address,
-      source: 'Google Maps',
-      status: 'new',
-      phone: biz.phone || null,
+    // Lead Search → Client Pipeline (client_leads table)
+    await addClient({
+      client_name: biz.name,
+      contact_person: biz.category || 'Owner',
       email: biz.enrichedEmail || null,
-      notes: `⭐ ${biz.rating}/5 (${biz.reviewsCount} reviews) | Score: ${biz.leadScore}/100${biz.website ? ` | 🌐 ${biz.website}` : ' | 🎯 No Website'} | 📍 ${biz.city} | Maps: ${biz.mapsUrl}`,
+      phone: biz.phone || null,
+      project_type: biz.category || 'Local Business',
+      source: 'Google Maps',
+      status: 'lead',
+      priority: biz.leadScore >= 70 ? 'high' : biz.leadScore >= 40 ? 'medium' : 'low',
+      description: `Local business found via Google Maps search`,
+      notes: `⭐ ${biz.rating}/5 (${biz.reviewsCount} reviews) | Score: ${biz.leadScore}/100${biz.website ? ` | 🌐 ${biz.website}` : ' | 🎯 No Website'} | 📍 ${biz.address}, ${biz.city} | Maps: ${biz.mapsUrl}`,
     });
     setSavedIds(prev => new Set([...Array.from(prev), biz.id]));
-    toast.success('Added to CRM!');
+    toast.success('Added to Client Pipeline!');
   };
 
   const saveAllToCRM = async () => {

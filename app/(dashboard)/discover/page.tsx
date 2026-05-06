@@ -9,6 +9,7 @@ import {
   Search, MapPin, Briefcase, Users, Loader2, Compass,
   ChevronDown, Sparkles, AlertCircle, RefreshCw, X,
   Building2, DollarSign, ChevronRight, Map, Download,
+  Clock, History, Trash2,
 } from 'lucide-react';
 
 const SENIORITY_OPTIONS = ['C-Suite', 'VP', 'Director', 'Manager', 'Individual'];
@@ -61,27 +62,47 @@ export default function DiscoverPage() {
   const [confirmNotes, setConfirmNotes] = useState('');
   const [confirmSaving, setConfirmSaving] = useState(false);
 
-  // Search history
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  // Search history — stores full search details
+  interface SearchHistoryEntry {
+    id: string;
+    query: string;
+    company: string;
+    location: string;
+    jobType: string;
+    resultsCount: number;
+    source: 'job' | 'map';
+    timestamp: string;
+  }
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('reachly-search-history');
+    const saved = localStorage.getItem('reachly-search-history-v2');
     if (saved) setSearchHistory(JSON.parse(saved));
   }, []);
 
-  const addToHistory = useCallback((term: string) => {
+  const addToHistory = useCallback((term: string, resultsCount = 0, source: 'job' | 'map' = 'job') => {
     setSearchHistory((prev) => {
-      const updated = [term, ...prev.filter((h) => h !== term)].slice(0, 5);
-      localStorage.setItem('reachly-search-history', JSON.stringify(updated));
+      const entry: SearchHistoryEntry = {
+        id: `${Date.now()}`,
+        query: term,
+        company: jobCompany,
+        location: jobLocation,
+        jobType,
+        resultsCount,
+        source,
+        timestamp: new Date().toISOString(),
+      };
+      const updated = [entry, ...prev].slice(0, 20);
+      localStorage.setItem('reachly-search-history-v2', JSON.stringify(updated));
       return updated;
     });
-  }, []);
+  }, [jobCompany, jobLocation, jobType]);
 
   // ─── Unified Job Search (calls /api/leads/search with enhanced params) ───
   const searchLeads = useCallback(async () => {
     if (!jobTitle.trim() && !jobCompany.trim()) { toast.error('Enter a job title or company name'); return; }
     setLeadsLoading(true); setLeadsError(''); setLeadsSearched(true); setVisibleLeadCount(10);
-    addToHistory(jobTitle || jobCompany);
     try {
       // Build enhanced query with seniority
       let enhancedTitle = jobTitle;
@@ -108,6 +129,7 @@ export default function DiscoverPage() {
       if (!res.ok) throw new Error('Failed to search');
       const data = await res.json();
       setLeads(data.leads || []);
+      addToHistory(jobTitle || jobCompany, data.leads?.length || 0, 'job');
     } catch (err) {
       setLeadsError(err instanceof Error ? err.message : 'Something went wrong');
     } finally { setLeadsLoading(false); }
@@ -148,17 +170,31 @@ export default function DiscoverPage() {
       const salary = lead.salary && (lead.salary.min || lead.salary.max)
         ? `$${lead.salary.min ? Math.round(lead.salary.min / 1000) + 'k' : '?'} - $${lead.salary.max ? Math.round(lead.salary.max / 1000) + 'k' : '?'}`
         : undefined;
+
+      // Build comprehensive notes with all available data
+      const notesParts: string[] = [];
+      if (confirmNotes) notesParts.push(confirmNotes);
+      if (lead.department) notesParts.push(`Dept: ${lead.department}`);
+      if (lead.domain) notesParts.push(`Domain: ${lead.domain}`);
+      if (lead.jobPosting?.publisher) notesParts.push(`Source: ${lead.jobPosting.publisher}`);
+      if (lead.jobPosting?.postedAgo) notesParts.push(`Posted: ${lead.jobPosting.postedAgo}`);
+      if (lead.jobPosting?.applyLink) notesParts.push(`Apply: ${lead.jobPosting.applyLink}`);
+      if (lead.isRemote) notesParts.push('🌍 Remote');
+      if (lead.jobPosting?.benefits && lead.jobPosting.benefits.length > 0) {
+        notesParts.push(`Benefits: ${lead.jobPosting.benefits.join(', ')}`);
+      }
+
+      // Job Search → Job Pipeline (leads table)
       await addLead({
         title: lead.position,
         company: lead.company,
         email: lead.email,
         location: lead.location || undefined,
         salary,
-        source: 'JSearch',
+        source: lead.jobPosting?.publisher ? `JSearch (${lead.jobPosting.publisher})` : 'JSearch',
         status: 'new',
-        notes: confirmNotes
-          ? confirmNotes
-          : `${lead.department ? `Dept: ${lead.department}` : ''}${lead.domain ? ` | Domain: ${lead.domain}` : ''}${lead.jobPosting?.applyLink ? ` | Job: ${lead.jobPosting.applyLink}` : ''}`.trim() || undefined,
+        phone: null,
+        notes: notesParts.join(' | ') || undefined,
       });
       setSavedLeadIds((prev) => new Set([...Array.from(prev), lead.id]));
     } finally {
@@ -295,20 +331,72 @@ export default function DiscoverPage() {
                 </div>
               </div>
 
-              {/* Search History */}
+              {/* Search History Quick Chips */}
               {searchHistory.length > 0 && !leadsSearched && (
                 <div className="flex flex-wrap items-center gap-2 pt-2">
                   <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Recent:</span>
-                  {searchHistory.map((term) => (
-                    <button key={term} onClick={() => { setJobTitle(term); }}
-                      className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-500 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                      {term}
+                  {searchHistory.slice(0, 5).map((entry) => (
+                    <button key={entry.id} onClick={() => { setJobTitle(entry.query); if (entry.company) setJobCompany(entry.company); if (entry.location) setJobLocation(entry.location); }}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-500 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5" />
+                      {entry.query}
+                      {entry.resultsCount > 0 && <span className="text-[9px] text-slate-400">({entry.resultsCount})</span>}
                     </button>
                   ))}
+                  <button onClick={() => setShowHistory(!showHistory)}
+                    className="px-2 py-1 rounded-lg text-[11px] font-medium text-blue-500 hover:bg-blue-50 transition-colors flex items-center gap-0.5">
+                    <History className="w-3 h-3" /> All History
+                  </button>
                 </div>
               )}
             </div>
           </div>
+
+          {/* ─── Full Search History Panel ─── */}
+          {showHistory && searchHistory.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-[#1e293b] flex items-center gap-2">
+                  <History className="w-4 h-4 text-blue-500" />
+                  Search History
+                  <span className="text-xs font-normal text-slate-400">({searchHistory.length} searches)</span>
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { setSearchHistory([]); localStorage.removeItem('reachly-search-history-v2'); }}
+                    className="text-[11px] text-red-400 hover:text-red-600 font-medium flex items-center gap-1 transition-colors">
+                    <Trash2 className="w-3 h-3" /> Clear All
+                  </button>
+                  <button onClick={() => setShowHistory(false)}
+                    className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                {searchHistory.map((entry) => (
+                  <div key={entry.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${entry.source === 'job' ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-[#1e293b] truncate">
+                        {entry.query}
+                        {entry.company && <span className="text-slate-400 font-normal"> at {entry.company}</span>}
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        {entry.location && `📍 ${entry.location} · `}
+                        {entry.resultsCount > 0 ? `${entry.resultsCount} results` : 'No results'}
+                        {' · '}
+                        {new Date(entry.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <button onClick={() => { setJobTitle(entry.query); if (entry.company) setJobCompany(entry.company); if (entry.location) setJobLocation(entry.location); setShowHistory(false); }}
+                      className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 flex-shrink-0">
+                      <RefreshCw className="w-3 h-3" /> Re-search
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Results */}
           <div>
