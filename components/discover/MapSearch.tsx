@@ -7,29 +7,34 @@ import toast from 'react-hot-toast';
 import {
   Search, MapPin, Loader2, AlertCircle, RefreshCw,
   Download, SlidersHorizontal, Sparkles, Target,
-  ChevronDown,
+  ChevronDown, Save,
 } from 'lucide-react';
 
 const NICHES = [
-  { label: '🦷 Dentist / Clinic', value: 'Dentist' },
-  { label: '💇 Salon / Beauty', value: 'Beauty salon' },
-  { label: '🏋 Gym / Fitness', value: 'Gym' },
-  { label: '🍕 Restaurant / Cafe', value: 'Restaurant' },
+  { label: '🦷 Dentist', value: 'Dentist' },
+  { label: '💇 Salon', value: 'Beauty salon' },
+  { label: '🏋 Gym', value: 'Gym' },
+  { label: '🍕 Restaurant', value: 'Restaurant' },
   { label: '🏠 Real Estate', value: 'Real estate agency' },
   { label: '⚖️ Law Firm', value: 'Law firm' },
-  { label: '📚 Coaching Center', value: 'Coaching center' },
-  { label: '✍️ Custom...', value: 'custom' },
+  { label: '📚 Coaching', value: 'Coaching center' },
+  { label: '🏥 Pharmacy', value: 'Pharmacy' },
+  { label: '🚗 Car Wash', value: 'Car wash' },
+  { label: '🐾 Pet Shop', value: 'Pet shop' },
+];
+
+const POPULAR_CITIES = [
+  'New York', 'London', 'Dubai', 'Toronto', 'Sydney',
+  'Dhaka', 'Mumbai', 'Singapore', 'Berlin', 'Tokyo',
 ];
 
 const PAIN_KEYWORDS = ['slow', 'bad service', 'late response', 'not professional', 'no response', 'rude'];
-const AREAS = ['Gulshan', 'Banani', 'Dhanmondi', 'Uttara', 'Mirpur', 'Wari', 'Motijheel'];
 
 export default function MapSearch() {
   const { addLead } = useLeadStore();
 
   // Form state
-  const [niche, setNiche] = useState('');
-  const [customNiche, setCustomNiche] = useState('');
+  const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [maxResults, setMaxResults] = useState(30);
   const [minRating, setMinRating] = useState(3.5);
@@ -50,11 +55,11 @@ export default function MapSearch() {
   const [searched, setSearched] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [campaignFilter, setCampaignFilter] = useState<'all' | 'none' | 'has'>('all');
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  const effectiveNiche = niche === 'custom' ? customNiche : niche;
-  const searchQuery = effectiveNiche && location ? `${effectiveNiche} in ${location}` : (effectiveNiche || location);
+  const searchQuery = keyword && location ? `${keyword} in ${location}` : (keyword || location);
 
   const togglePainKw = (kw: string) => {
     setSelectedPainKw(prev =>
@@ -70,7 +75,6 @@ export default function MapSearch() {
     if (pollingRef.current) clearInterval(pollingRef.current);
 
     try {
-      // Start run
       const res = await fetch('/api/map-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,7 +92,6 @@ export default function MapSearch() {
 
       setProgress('Scraping Google Maps... (this takes 30–90 seconds)');
 
-      // Build filter query string for polling
       const filterQs = new URLSearchParams({
         minRating: String(filters.minRating),
         maxRating: String(filters.maxRating),
@@ -101,7 +104,6 @@ export default function MapSearch() {
         painKeywords: selectedPainKw.join(','),
       });
 
-      // Poll for results
       let attempts = 0;
       pollingRef.current = setInterval(async () => {
         attempts++;
@@ -150,6 +152,19 @@ export default function MapSearch() {
     toast.success('Added to CRM!');
   };
 
+  const saveAllToCRM = async () => {
+    const unsaved = displayBiz.filter(b => !savedIds.has(b.id));
+    if (unsaved.length === 0) { toast('All leads already saved'); return; }
+    setBulkSaving(true);
+    let count = 0;
+    for (const biz of unsaved) {
+      await addToCRM(biz);
+      count++;
+    }
+    setBulkSaving(false);
+    toast.success(`Saved ${count} leads to CRM!`);
+  };
+
   const exportCSV = () => {
     const headers = ['Name', 'Category', 'Rating', 'Reviews', 'Phone', 'Website', 'Address', 'City', 'Lead Score', 'Maps URL'];
     const rows = displayBiz.map(b => [
@@ -166,7 +181,6 @@ export default function MapSearch() {
     toast.success(`Exported ${displayBiz.length} leads to CSV`);
   };
 
-  // Filter display by campaign
   const displayBiz = businesses.filter(b => {
     if (campaignFilter === 'none') return !b.website;
     if (campaignFilter === 'has') return !!b.website;
@@ -178,59 +192,69 @@ export default function MapSearch() {
   return (
     <div className="space-y-5">
       {/* Search Form */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
-        {/* Niche Selection */}
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-sm">
+        {/* Keyword Input — Primary */}
         <div className="mb-4">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">🏷 Business Type</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">🔍 Business Type / Keyword</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && startSearch()}
+              placeholder="e.g. Dentist, Restaurant, Gym, Photography studio..."
+              className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+            />
+          </div>
+          {/* Quick-fill chips */}
+          <div className="flex flex-wrap gap-1.5 mt-2">
             {NICHES.map(n => (
               <button
                 key={n.value}
-                onClick={() => setNiche(n.value)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${niche === n.value ? 'bg-blue-500 text-white border-blue-500 shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}
+                onClick={() => setKeyword(n.value)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border ${keyword === n.value ? 'bg-blue-500 text-white border-blue-500 shadow-sm' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}
               >
                 {n.label}
               </button>
             ))}
           </div>
-          {niche === 'custom' && (
-            <input
-              type="text"
-              value={customNiche}
-              onChange={e => setCustomNiche(e.target.value)}
-              placeholder="e.g. Photography studio"
-              className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            />
-          )}
         </div>
 
-        {/* Location */}
+        {/* Location Input — Global */}
         <div className="mb-4">
-          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">📍 Micro-Location</label>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {AREAS.map(a => (
-              <button key={a} onClick={() => setLocation(a)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${location === a ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-indigo-300'}`}>
-                {a}
-              </button>
-            ))}
-          </div>
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">📍 Location (Worldwide)</label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               value={location}
               onChange={e => setLocation(e.target.value)}
-              placeholder="Or type custom: Gulshan 2, Dhaka"
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              onKeyDown={e => e.key === 'Enter' && startSearch()}
+              placeholder="e.g. Manhattan, New York / Gulshan, Dhaka / London, UK..."
+              className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
             />
           </div>
-          {searchQuery && (
-            <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-              <Search className="w-3 h-3" /> Will search: <span className="font-semibold text-slate-600">&quot;{searchQuery}&quot;</span>
-            </p>
-          )}
+          {/* Popular cities quick-fill */}
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {POPULAR_CITIES.map(city => (
+              <button key={city} onClick={() => setLocation(city)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border ${location === city ? 'bg-blue-500 text-white border-blue-500' : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'}`}>
+                {city}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Search Preview */}
+        {searchQuery && (
+          <div className="mb-4 px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2">
+            <Target className="w-4 h-4 text-blue-500 flex-shrink-0" />
+            <p className="text-sm text-blue-700">
+              Searching: <span className="font-bold">&quot;{searchQuery}&quot;</span>
+            </p>
+          </div>
+        )}
 
         {/* Quick Filters Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
@@ -292,7 +316,6 @@ export default function MapSearch() {
 
         {showAdvanced && (
           <div className="space-y-3 p-4 bg-slate-50 rounded-xl mb-4 border border-slate-100">
-            {/* Pain Keywords */}
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">💬 Pain-Point Keywords</label>
               <div className="flex flex-wrap gap-2">
@@ -304,8 +327,6 @@ export default function MapSearch() {
                 ))}
               </div>
             </div>
-
-            {/* Toggles */}
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={requirePhone} onChange={e => setRequirePhone(e.target.checked)}
@@ -333,7 +354,7 @@ export default function MapSearch() {
         </button>
       </div>
 
-      {/* Results */}
+      {/* Error State */}
       {error && (
         <div className="bg-white rounded-2xl border border-red-100 p-8 flex flex-col items-center text-center">
           <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
@@ -344,10 +365,11 @@ export default function MapSearch() {
         </div>
       )}
 
+      {/* Results */}
       {businesses.length > 0 && !loading && (
         <div>
           {/* Results header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <p className="text-sm font-semibold text-slate-700">
                 <span className="text-blue-600">{displayBiz.length}</span> qualified leads
@@ -355,12 +377,22 @@ export default function MapSearch() {
               </p>
               <p className="text-xs text-slate-400 mt-0.5">Sorted by Lead Score · Highest first</p>
             </div>
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" /> Export CSV
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={saveAllToCRM}
+                disabled={bulkSaving}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-100 transition-colors disabled:opacity-50"
+              >
+                {bulkSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                Save All ({displayBiz.filter(b => !savedIds.has(b.id)).length})
+              </button>
+              <button
+                onClick={exportCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" /> Export CSV
+              </button>
+            </div>
           </div>
 
           {/* Campaign Toggle */}
@@ -387,8 +419,9 @@ export default function MapSearch() {
         </div>
       )}
 
+      {/* No results */}
       {searched && !loading && businesses.length === 0 && !error && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center text-center">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-12 flex flex-col items-center text-center">
           <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
             <Search className="w-7 h-7 text-slate-300" />
           </div>
@@ -397,19 +430,38 @@ export default function MapSearch() {
         </div>
       )}
 
+      {/* Empty State */}
       {!searched && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-            <Sparkles className="w-8 h-8 text-blue-400" />
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-10 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+            <Sparkles className="w-8 h-8 text-blue-500" />
           </div>
-          <h3 className="text-lg font-bold text-slate-700">Find High-Converting Local Leads</h3>
-          <p className="text-sm text-slate-400 mt-1 max-w-sm">
-            Select a niche + location above. Our AI filters only businesses that need your services.
+          <h3 className="text-lg font-bold text-slate-800">Find High-Converting Local Leads</h3>
+          <p className="text-sm text-slate-400 mt-1.5 max-w-md">
+            Search any business type in any city worldwide. Our AI scores each lead based on rating, reviews, website presence, and more.
           </p>
-          <div className="grid grid-cols-3 gap-3 mt-5 text-xs text-slate-500 max-w-xs">
-            <div className="p-2 bg-slate-50 rounded-lg">⭐ 3.5–4.3<br/>Rating Sweet Spot</div>
-            <div className="p-2 bg-slate-50 rounded-lg">🎯 No Website<br/>Easy Pitch</div>
-            <div className="p-2 bg-slate-50 rounded-lg">🔥 Lead Score<br/>AI Ranked</div>
+          <div className="grid grid-cols-3 gap-3 mt-6 text-xs text-slate-600 max-w-sm w-full">
+            <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+              <div className="text-xl mb-1">1️⃣</div>
+              <span className="font-semibold">Type Keyword</span>
+              <p className="text-[10px] text-slate-400 mt-0.5">e.g. &quot;Restaurant&quot;</p>
+            </div>
+            <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+              <div className="text-xl mb-1">2️⃣</div>
+              <span className="font-semibold">Add Location</span>
+              <p className="text-[10px] text-slate-400 mt-0.5">e.g. &quot;New York&quot;</p>
+            </div>
+            <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+              <div className="text-xl mb-1">3️⃣</div>
+              <span className="font-semibold">Get Leads</span>
+              <p className="text-[10px] text-slate-400 mt-0.5">AI-scored results</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 mt-5">
+            <span className="px-2.5 py-1 bg-slate-50 rounded-lg text-[10px] text-slate-400 border border-slate-100">⭐ 3.5–4.3 Sweet Spot</span>
+            <span className="px-2.5 py-1 bg-slate-50 rounded-lg text-[10px] text-slate-400 border border-slate-100">🎯 No Website = Easy Pitch</span>
+            <span className="px-2.5 py-1 bg-slate-50 rounded-lg text-[10px] text-slate-400 border border-slate-100">🔥 AI Lead Score</span>
+            <span className="px-2.5 py-1 bg-slate-50 rounded-lg text-[10px] text-slate-400 border border-slate-100">🌍 Works Worldwide</span>
           </div>
         </div>
       )}
