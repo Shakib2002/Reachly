@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useLeadStore } from '@/lib/store';
 import MapCard, { type MapBusiness } from './MapCard';
 import toast from 'react-hot-toast';
@@ -37,13 +37,13 @@ export default function MapSearch() {
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [maxResults, setMaxResults] = useState(30);
-  const [minRating, setMinRating] = useState(3.5);
-  const [maxRating, setMaxRating] = useState(4.3);
-  const [minReviews, setMinReviews] = useState(15);
-  const [maxReviews, setMaxReviews] = useState(120);
+  const [minRating, setMinRating] = useState(1.0);
+  const [maxRating, setMaxRating] = useState(5.0);
+  const [minReviews, setMinReviews] = useState(1);
+  const [maxReviews, setMaxReviews] = useState(10000);
   const [websiteFilter, setWebsiteFilter] = useState<'any' | 'none' | 'has'>('any');
-  const [requirePhone, setRequirePhone] = useState(true);
-  const [onlyOpen, setOnlyOpen] = useState(true);
+  const [requirePhone, setRequirePhone] = useState(false);
+  const [onlyOpen, setOnlyOpen] = useState(false);
   const [selectedPainKw, setSelectedPainKw] = useState<string[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -57,7 +57,6 @@ export default function MapSearch() {
   const [campaignFilter, setCampaignFilter] = useState<'all' | 'none' | 'has'>('all');
   const [bulkSaving, setBulkSaving] = useState(false);
 
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const searchQuery = keyword && location ? `${keyword} in ${location}` : (keyword || location);
 
@@ -70,9 +69,15 @@ export default function MapSearch() {
   const startSearch = useCallback(async () => {
     if (!searchQuery.trim()) { toast.error('Enter a business type and location'); return; }
     setLoading(true); setError(''); setSearched(true); setBusinesses([]);
-    setProgress('Starting Google Maps scan...');
+    setProgress('Scanning Google Maps... please wait (2-5 minutes)');
 
-    if (pollingRef.current) clearInterval(pollingRef.current);
+    // Show elapsed time while waiting
+    const startTime = Date.now();
+    const timerRef = setInterval(() => {
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      const dots = '.'.repeat((Math.floor(elapsed / 2) % 3) + 1);
+      setProgress(`Scanning Google Maps${dots} (${elapsed}s elapsed)`);
+    }, 1000);
 
     try {
       const res = await fetch('/api/map-search', {
@@ -87,57 +92,30 @@ export default function MapSearch() {
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to start search');
-      const { runId, filters } = await res.json();
+      clearInterval(timerRef);
 
-      setProgress('Scraping Google Maps... (this takes 30–90 seconds)');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to search');
+      }
 
-      const filterQs = new URLSearchParams({
-        minRating: String(filters.minRating),
-        maxRating: String(filters.maxRating),
-        minReviews: String(filters.minReviews),
-        maxReviews: String(filters.maxReviews),
-        websiteFilter: filters.websiteFilter,
-        requirePhone: String(filters.requirePhone),
-        onlyOpen: String(filters.onlyOpen),
-        maxResults: String(filters.maxResults),
-        painKeywords: selectedPainKw.join(','),
-      });
+      const data = await res.json();
+      setBusinesses(data.businesses || []);
+      setProgress('');
 
-      let attempts = 0;
-      pollingRef.current = setInterval(async () => {
-        attempts++;
-        if (attempts > 40) {
-          clearInterval(pollingRef.current!);
-          setError('Search timed out. Please try again.');
-          setLoading(false);
-          return;
-        }
-
-        const dots = '.'.repeat((attempts % 3) + 1);
-        setProgress(`Scanning Google Maps${dots} (${attempts * 4}s)`);
-
-        const pollRes = await fetch(`/api/map-search/results/${runId}?${filterQs}`);
-        const pollData = await pollRes.json();
-
-        if (pollData.status === 'SUCCEEDED') {
-          clearInterval(pollingRef.current!);
-          setBusinesses(pollData.businesses || []);
-          setLoading(false);
-          setProgress('');
-          toast.success(`Found ${pollData.businesses?.length || 0} qualified leads!`);
-        } else if (pollData.status === 'FAILED') {
-          clearInterval(pollingRef.current!);
-          setError('Map search failed. Please try again.');
-          setLoading(false);
-        }
-      }, 4000);
+      if (data.businesses?.length > 0) {
+        toast.success(`Found ${data.businesses.length} qualified leads!`);
+      } else {
+        toast(data.message || 'No leads matched your filters. Try adjusting rating/review ranges.');
+      }
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      clearInterval(timerRef);
+      setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
+    } finally {
       setLoading(false);
     }
-  }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen, selectedPainKw]);
+  }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addToCRM = async (biz: MapBusiness & { enrichedEmail?: string }) => {
