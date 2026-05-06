@@ -115,15 +115,21 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
 
   const handleAdd = async () => {
     setSaving(true);
-    await onAddToCRM(biz);
+    // Pass enriched email if found — so CRM gets the real email
+    const enrichedBiz = foundEmail && foundEmail !== 'not-found'
+      ? { ...biz, enrichedEmail: foundEmail }
+      : biz;
+    await onAddToCRM(enrichedBiz);
     setSaving(false);
   };
 
   const handleFindEmail = async () => {
-    if (!biz.website) { return; }
     setFindingEmail(true);
     try {
-      const domain = biz.website.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+      // Extract domain from website, or use company name as fallback
+      const domain = biz.website
+        ? biz.website.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+        : null;
       const res = await fetch('/api/leads/enrich', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -245,6 +251,17 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
           </span>
         </div>
 
+        {/* Enriched Email Display */}
+        {foundEmail && foundEmail !== 'not-found' && (
+          <div className="flex items-center gap-2 mt-1.5 px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-100">
+            <Mail className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+            <a href={`mailto:${foundEmail}`} className="text-xs text-emerald-700 font-mono truncate hover:text-emerald-800 flex-1">
+              {foundEmail}
+            </a>
+            <span className="text-[9px] px-1.5 py-0.5 bg-emerald-100 text-emerald-600 rounded font-semibold">Verified</span>
+          </div>
+        )}
+
         {/* Quick Actions Row */}
         <div className="flex items-center gap-1.5 pt-1">
           {biz.phone && (
@@ -264,7 +281,7 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
               <Globe className="w-3.5 h-3.5" />
             </a>
           )}
-          {biz.website && !foundEmail && (
+          {!foundEmail && (
             <button
               onClick={handleFindEmail}
               disabled={findingEmail}

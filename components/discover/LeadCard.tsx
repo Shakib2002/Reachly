@@ -133,26 +133,34 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
     if (!lead.domain && !lead.company) return;
     setEnriching(true);
     try {
-      const res = await fetch('/api/leads/waterfall', {
+      // Use /api/leads/enrich — domain-search API that finds ALL contacts at a domain
+      // This works even without first_name/last_name (unlike waterfall)
+      const res = await fetch('/api/leads/enrich', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          company: lead.company,
           domain: lead.domain,
+          company: lead.company,
           role: lead.position,
         }),
       });
       const data = await res.json();
-      if (data.result) {
+      if (data.contacts?.length > 0) {
+        const best = data.contacts[0];
         setEnrichedData({
-          email: data.result.email,
-          confidence: data.result.confidence,
-          linkedin: data.result.linkedin,
-          phone: data.result.phone,
-          first_name: data.result.first_name || '',
-          last_name: data.result.last_name || '',
-          title: data.result.title || '',
-          source: data.result.source,
+          email: best.email,
+          confidence: best.confidence || 0,
+          linkedin: best.linkedin,
+          phone: best.phone,
+          first_name: best.first_name || '',
+          last_name: best.last_name || '',
+          title: best.position || '',
+          source: best.source || 'enrichment',
+        });
+      } else {
+        setEnrichedData({
+          email: null, confidence: 0, linkedin: null, phone: null,
+          first_name: '', last_name: '', title: '', source: 'no-results',
         });
       }
     } catch {

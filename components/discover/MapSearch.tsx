@@ -139,7 +139,8 @@ export default function MapSearch() {
     }
   }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen, selectedPainKw]);
 
-  const addToCRM = async (biz: MapBusiness) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const addToCRM = async (biz: MapBusiness & { enrichedEmail?: string }) => {
     await addLead({
       title: biz.name,
       company: biz.category || 'Local Business',
@@ -147,7 +148,7 @@ export default function MapSearch() {
       source: 'Google Maps',
       status: 'new',
       phone: biz.phone || null,
-      email: null,
+      email: biz.enrichedEmail || null,
       notes: `⭐ ${biz.rating}/5 (${biz.reviewsCount} reviews) | Score: ${biz.leadScore}/100${biz.website ? ` | 🌐 ${biz.website}` : ' | 🎯 No Website'} | 📍 ${biz.city} | Maps: ${biz.mapsUrl}`,
     });
     setSavedIds(prev => new Set([...Array.from(prev), biz.id]));
