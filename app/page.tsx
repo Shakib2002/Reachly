@@ -532,15 +532,21 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 px-6 bg-slate-50/80 bg-dots">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-[#1e293b] text-center mb-12 font-display reveal">What our users say</h2>
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-slate-50/80" />
+        <div className="absolute inset-0 bg-dots opacity-40" />
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="text-center mb-14 reveal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[11px] font-bold mb-4 border border-amber-100">⭐ Testimonials</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] font-display">Loved by thousands</h2>
+            <p className="text-slate-400 mt-3 max-w-md mx-auto">See why professionals trust Reachly for their outreach</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {TESTIMONIALS.map((t,i)=>(
-              <div key={i} className={`glass-card rounded-2xl p-5 reveal delay-${(i%3)+1}`}>
+              <div key={i} className={`bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 reveal delay-${(i%3)+1}`}>
                 <div className="flex gap-0.5 mb-3">{Array.from({length:5}).map((_,j)=><Star key={j} className="w-3.5 h-3.5 fill-amber-400 text-amber-400"/>)}</div>
                 <p className="text-sm text-slate-600 leading-relaxed mb-4">&ldquo;{t.q}&rdquo;</p>
-                <div className="flex items-center gap-2.5"><Image src={t.img} alt={t.n} width={36} height={36} className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-100" /><div><p className="text-xs font-bold text-[#1e293b]">{t.n}</p><p className="text-[10px] text-slate-400">{t.r}</p></div></div>
+                <div className="flex items-center gap-2.5"><Image src={t.img} alt={t.n} width={36} height={36} className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-100" /><div><p className="text-xs font-bold text-[#1e293b]">{t.n}</p><p className="text-[10px] text-slate-400">{t.r}</p></div></div>
               </div>
             ))}
           </div>
@@ -548,18 +554,23 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl font-extrabold text-[#1e293b] mb-3">Simple, transparent pricing</h2>
-          <p className="text-slate-400 mb-12">Start free. Upgrade when you need more.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[{n:'Free',p:'$0',f:['50 leads/month','100 emails','Basic CRM','20 job searches'],cta:'Get Started Free',href:'/register',pop:false},{n:'Pro',p:'$29',f:['Unlimited leads','2,000 emails','AI email generation','Advanced analytics','Auto sequences'],cta:'Start Pro Trial',href:'/pricing',pop:true},{n:'Team',p:'$79',f:['Everything in Pro','5 team members','10,000 emails','Priority support','Shared CRM'],cta:'Start Team Trial',href:'/pricing',pop:false}].map(p=>(
-              <div key={p.n} className={`bg-white rounded-2xl border-2 p-6 flex flex-col relative ${p.pop?'border-blue-400 ring-2 ring-blue-100 scale-105':'border-slate-200'}`}>
-                {p.pop&&<span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] font-bold rounded-full">Most Popular</span>}
-                <h3 className="text-lg font-bold text-[#1e293b]">{p.n}</h3>
-                <div className="mt-2 mb-5"><span className="text-3xl font-extrabold text-[#1e293b]">{p.p}</span>{p.p!=='$0'&&<span className="text-slate-400 text-sm">/mo</span>}</div>
-                <div className="flex-1 space-y-2 mb-6">{p.f.map(f=><div key={f} className="flex items-center gap-2 text-sm text-slate-600"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0"/>{f}</div>)}</div>
-                <Link href={p.href} className={`w-full py-3 rounded-xl text-sm font-bold text-center block ${p.pop?'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25':'border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{p.cta}</Link>
+      <section id="pricing" className="py-24 px-6 relative overflow-hidden">
+        <div className="absolute inset-0" style={{background:'linear-gradient(180deg, #ffffff 0%, #f0f7ff 40%, #e8f2ff 60%, #f0f7ff 80%, #ffffff 100%)'}} />
+        <div className="absolute inset-0 bg-dots opacity-30" />
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="reveal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[11px] font-bold mb-4 border border-blue-100">💎 Pricing</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] font-display">Simple, transparent pricing</h2>
+            <p className="text-slate-400 mt-3 mb-14">Start free. Upgrade when you need more.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+            {[{n:'Free',p:'$0',f:['50 leads/month','100 emails','Basic CRM','20 job searches'],cta:'Get Started Free',href:'/register',pop:false},{n:'Pro',p:'$29',f:['Unlimited leads','2,000 emails','AI email generation','Advanced analytics','Auto sequences'],cta:'Start Pro Trial',href:'/pricing',pop:true},{n:'Team',p:'$79',f:['Everything in Pro','5 team members','10,000 emails','Priority support','Shared CRM'],cta:'Start Team Trial',href:'/pricing',pop:false}].map((p,i)=>(
+              <div key={p.n} className={`bg-white rounded-2xl border-2 p-7 flex flex-col relative hover:shadow-xl transition-all duration-500 reveal delay-${i+1} ${p.pop?'border-blue-400 ring-2 ring-blue-100 md:scale-105 shadow-lg shadow-blue-100/50':'border-slate-200 hover:-translate-y-1'}`}>
+                {p.pop&&<span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] font-bold rounded-full shadow-md shadow-blue-500/30">Most Popular ✨</span>}
+                <h3 className="text-lg font-bold text-[#1e293b] font-display">{p.n}</h3>
+                <div className="mt-2 mb-5"><span className="text-4xl font-extrabold text-[#1e293b] font-display">{p.p}</span>{p.p!=='$0'&&<span className="text-slate-400 text-sm">/mo</span>}</div>
+                <div className="flex-1 space-y-2.5 mb-6">{p.f.map(f=><div key={f} className="flex items-center gap-2 text-sm text-slate-600"><Check className="w-4 h-4 text-emerald-500 flex-shrink-0"/>{f}</div>)}</div>
+                <Link href={p.href} className={`w-full py-3.5 rounded-xl text-sm font-bold text-center block transition-all ${p.pop?'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40':'border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'}`}>{p.cta}</Link>
               </div>
             ))}
           </div>
@@ -567,41 +578,59 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 px-6 gradient-mesh">
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-[#1e293b] text-center mb-10">Frequently Asked Questions</h2>
+          <div className="text-center mb-12 reveal">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[11px] font-bold mb-4">❓ FAQ</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1e293b] font-display">Frequently Asked Questions</h2>
+            <p className="text-slate-400 mt-3">Everything you need to know about Reachly</p>
+          </div>
           <div className="space-y-3">{FAQ.map((f,i)=>(
-            <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <button onClick={()=>setOpenFaq(openFaq===i?-1:i)} className="w-full flex items-center justify-between px-5 py-4 text-left"><span className="text-sm font-semibold text-[#1e293b]">{f.q}</span><ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openFaq===i?'rotate-180':''}`}/></button>
-              {openFaq===i&&<div className="px-5 pb-4 text-sm text-slate-500">{f.a}</div>}
+            <div key={i} className={`bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-blue-200 transition-colors reveal delay-${Math.min(i+1,3)}`}>
+              <button onClick={()=>setOpenFaq(openFaq===i?-1:i)} className="w-full flex items-center justify-between px-5 py-4 text-left group">
+                <span className="text-sm font-semibold text-[#1e293b] group-hover:text-blue-600 transition-colors">{f.q}</span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-300 flex-shrink-0 ml-4 ${openFaq===i?'rotate-180 text-blue-500':''}`}/>
+              </button>
+              <div className={`overflow-hidden transition-all duration-300 ${openFaq===i?'max-h-40 opacity-100':'max-h-0 opacity-0'}`}>
+                <div className="px-5 pb-4 text-sm text-slate-500 leading-relaxed">{f.a}</div>
+              </div>
             </div>
           ))}</div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl p-12 shadow-2xl shadow-blue-500/20">
-          <h2 className="text-3xl font-extrabold text-white mb-3">Ready to land your dream opportunity?</h2>
-          <p className="text-blue-100 mb-8">Join thousands of professionals using Reachly</p>
-          <Link href="/register" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-full shadow-xl hover:shadow-2xl transition-all text-sm">Get Started for Free <ArrowRight className="w-4 h-4"/></Link>
-          <p className="text-blue-200 text-xs mt-4">No credit card required</p>
+      <section className="py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center relative overflow-hidden rounded-3xl p-14 shadow-2xl shadow-blue-500/20 reveal">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500" />
+          <div className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full opacity-20" style={{background:'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%)',animation:'orb-float-1 15s ease-in-out infinite'}} />
+          <div className="absolute bottom-0 left-0 w-[200px] h-[200px] rounded-full opacity-15" style={{background:'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',animation:'orb-float-2 20s ease-in-out infinite'}} />
+          <div className="relative z-10">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 font-display">Ready to land your dream opportunity?</h2>
+            <p className="text-blue-100 mb-8 max-w-lg mx-auto">Join thousands of professionals using Reachly to close more deals faster</p>
+            <Link href="/register" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all text-sm">Get Started for Free <ArrowRight className="w-4 h-4"/></Link>
+            <p className="text-blue-200/70 text-xs mt-4">No credit card required · Free forever plan</p>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="about" className="bg-[#0f172a] text-white pt-16 pb-8 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+      <footer id="about" className="bg-[#0a1628] text-white pt-0 pb-8 px-6">
+        <div className="h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 pt-16">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3"><Image src="/images/logo.png" alt="Reachly" width={32} height={32} className="rounded-xl" /><span className="text-lg font-bold font-display">Reachly</span></div>
             <p className="text-slate-400 text-xs leading-relaxed mb-4">All-in-one outreach platform. Find prospects, send AI emails, and close more deals.</p>
-            <div className="flex gap-3">{['𝕏','in','◆'].map((s,i)=><div key={i} className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-xs hover:bg-white/20 cursor-pointer transition-colors">{s}</div>)}</div>
+            <div className="flex gap-2">{['𝕏','in','◆'].map((s,i)=><div key={i} className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-xs hover:bg-white/10 hover:border-white/20 cursor-pointer transition-all">{s}</div>)}</div>
           </div>
           {[{t:'Product',l:['Features','Pricing','Changelog','Roadmap']},{t:'Company',l:['About','Blog','Careers','Press']},{t:'Legal',l:['Privacy','Terms','Cookies','Contact']}].map(c=>(
-            <div key={c.t}><h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">{c.t}</h4><ul className="space-y-2">{c.l.map(l=><li key={l}><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">{l}</a></li>)}</ul></div>
+            <div key={c.t}><h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-4">{c.t}</h4><ul className="space-y-2.5">{c.l.map(l=><li key={l}><a href="#" className="text-sm text-slate-400 hover:text-blue-300 transition-colors">{l}</a></li>)}</ul></div>
           ))}
         </div>
-        <div className="border-t border-slate-800 pt-6 text-center"><p className="text-xs text-slate-500">© 2026 Reachly. All rights reserved. Made with ❤️</p></div>
+        <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-6xl mx-auto">
+          <p className="text-xs text-slate-500">© 2026 Reachly. All rights reserved.</p>
+          <p className="text-xs text-slate-500">Made with ❤️ for ambitious professionals</p>
+        </div>
       </footer>
     </div>
   );
