@@ -16,13 +16,16 @@ interface JSearchJob {
   job_posted_at_datetime_utc: string;
   job_is_remote: boolean;
   job_employment_type: string;
+  job_min_salary: number | null;
+  job_max_salary: number | null;
+  job_salary_currency: string | null;
+  job_salary_period: string | null;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { company, title, location } = await request.json();
+    const { company, title, location, jobType, datePosted } = await request.json();
 
-    // Rate limit: 20 searches per 60 seconds per IP
     const rateLimited = await applyRateLimit(request, 'search');
     if (rateLimited) return rateLimited;
 
@@ -45,8 +48,12 @@ export async function POST(request: NextRequest) {
     const params = new URLSearchParams({
       query: searchQuery,
       page: '1',
-      num_pages: '2',
+      num_pages: '3',
     });
+
+    // Add optional filters from merged Job Search
+    if (datePosted && datePosted !== 'all') params.set('date_posted', datePosted);
+    if (jobType && jobType !== 'all') params.set('employment_types', jobType);
 
     const response = await fetch(
       `https://jsearch.p.rapidapi.com/search?${params.toString()}`,
@@ -70,24 +77,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ leads: [], totalResults: 0 });
     }
 
-    // Transform job postings into REAL lead cards
-    // All data is 100% from the API — no fake names, no fabricated contacts
+    // Transform job postings into lead cards with salary data
     const leads = jobs.map((job, index) => {
       const domain = extractDomain(job.employer_website || '');
       const department = guessDepartment(job.job_title);
 
       return {
         id: `lead-${index}-${job.employer_name}-${Date.now()}`,
-        // Use REAL company name as the lead identity — NOT fake person names
         firstName: job.employer_name,
         lastName: '',
         position: job.job_title,
         company: job.employer_name,
         domain,
         logo: job.employer_logo,
-        email: null,        // Real — will be enriched via Find Email button
+        email: null,
         emailStatus: 'unknown' as const,
-        linkedin: null,     // Real — will be found via LinkedIn button
+        linkedin: null,
         department,
         location: job.job_is_remote
           ? 'Remote'
@@ -98,7 +103,15 @@ export async function POST(request: NextRequest) {
           postedAt: job.job_posted_at_datetime_utc,
           type: job.job_employment_type,
         },
-        confidence: 0,       // Real — 0 until enriched via waterfall API
+        // NEW: salary data from merged Job Search
+        salary: {
+          min: job.job_min_salary,
+          max: job.job_max_salary,
+          currency: job.job_salary_currency || 'USD',
+          period: job.job_salary_period || 'YEAR',
+        },
+        isRemote: job.job_is_remote,
+        confidence: 0,
         isReal: true,
       };
     });

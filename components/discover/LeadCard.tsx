@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   ExternalLink, Mail, CheckCircle, Loader2,
   UserPlus, MapPin, Briefcase, Search, Link2, Phone,
-  Shield, ShieldCheck, ShieldAlert, Globe,
+  Shield, ShieldCheck, ShieldAlert, Globe, DollarSign,
 } from 'lucide-react';
 
 export interface LeadResult {
@@ -26,6 +26,13 @@ export interface LeadResult {
     postedAt: string;
     type: string;
   } | null;
+  salary?: {
+    min: number | null;
+    max: number | null;
+    currency: string;
+    period: string;
+  } | null;
+  isRemote?: boolean;
 }
 
 interface LeadCardProps {
@@ -226,9 +233,23 @@ export default function LeadCard({ lead, onAddToCRM, isSaved }: LeadCardProps) {
           <Briefcase className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-xs text-slate-600 font-medium truncate">{lead.jobPosting.title}</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">
-              {lead.jobPosting.type?.replace('_', ' ')} · Posted {formatDate(lead.jobPosting.postedAt)}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <span className="text-[10px] text-slate-400">
+                {lead.jobPosting.type?.replace('_', ' ')} · Posted {formatDate(lead.jobPosting.postedAt)}
+              </span>
+              {lead.isRemote && (
+                <span className="text-[10px] px-1.5 py-0.5 bg-violet-50 text-violet-600 rounded font-semibold border border-violet-100">🌍 Remote</span>
+              )}
+              {lead.salary && (lead.salary.min || lead.salary.max) && (
+                <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded font-semibold border border-emerald-100 flex items-center gap-0.5">
+                  <DollarSign className="w-2.5 h-2.5" />
+                  {lead.salary.min ? `${Math.round(lead.salary.min / 1000)}k` : '?'}
+                  {' - '}
+                  {lead.salary.max ? `${Math.round(lead.salary.max / 1000)}k` : '?'}
+                  /{lead.salary.period?.toLowerCase() === 'year' ? 'yr' : lead.salary.period?.toLowerCase()}
+                </span>
+              )}
+            </div>
           </div>
           <a href={lead.jobPosting.applyLink} target="_blank" rel="noopener noreferrer"
             className="text-[10px] text-blue-500 hover:text-blue-700 font-semibold flex items-center gap-0.5 flex-shrink-0">
