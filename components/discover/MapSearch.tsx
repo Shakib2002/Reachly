@@ -23,6 +23,38 @@ const NICHES = [
   { label: '🐾 Pet Shop', value: 'Pet shop' },
 ];
 
+// Search recommendations for autocomplete
+const KEYWORD_SUGGESTIONS = [
+  'Dentist', 'Beauty salon', 'Gym', 'Restaurant', 'Real estate agency',
+  'Law firm', 'Coaching center', 'Pharmacy', 'Car wash', 'Pet shop',
+  'Photography studio', 'Web design agency', 'Marketing agency',
+  'Plumber', 'Electrician', 'HVAC contractor', 'Roofing company',
+  'Landscaping service', 'Auto repair shop', 'Accounting firm',
+  'Insurance agency', 'Financial advisor', 'Chiropractor',
+  'Veterinarian', 'Bakery', 'Cafe', 'Coffee shop', 'Clothing store',
+  'Yoga studio', 'Pilates studio', 'Spa', 'Massage therapy',
+  'Tattoo shop', 'Florist', 'Event planner', 'Wedding planner',
+  'Moving company', 'Cleaning service', 'Daycare center',
+  'Tutoring center', 'Driving school', 'Furniture store',
+  'Interior designer', 'Architect', 'Construction company',
+  'Travel agency', 'Hotel', 'Car dealership', 'Tire shop',
+];
+
+const LOCATION_SUGGESTIONS = [
+  'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX',
+  'Miami, FL', 'San Francisco, CA', 'Boston, MA', 'Seattle, WA',
+  'Austin, TX', 'Denver, CO', 'Atlanta, GA', 'Dallas, TX',
+  'London, UK', 'Manchester, UK', 'Birmingham, UK',
+  'Toronto, Canada', 'Vancouver, Canada', 'Montreal, Canada',
+  'Dubai, UAE', 'Abu Dhabi, UAE',
+  'Sydney, Australia', 'Melbourne, Australia',
+  'Singapore', 'Hong Kong',
+  'Dhaka, Bangladesh', 'Chittagong, Bangladesh',
+  'Mumbai, India', 'Delhi, India', 'Bangalore, India',
+  'Berlin, Germany', 'Munich, Germany',
+  'Paris, France', 'Tokyo, Japan', 'Seoul, South Korea',
+];
+
 const POPULAR_CITIES = [
   'New York', 'London', 'Dubai', 'Toronto', 'Sydney',
   'Dhaka', 'Mumbai', 'Singapore', 'Berlin', 'Tokyo',
@@ -194,12 +226,16 @@ export default function MapSearch() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
+              list="keyword-suggestions"
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && startSearch()}
               placeholder="e.g. Dentist, Restaurant, Gym, Photography studio..."
               className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
             />
+            <datalist id="keyword-suggestions">
+              {KEYWORD_SUGGESTIONS.map(s => <option key={s} value={s} />)}
+            </datalist>
           </div>
           {/* Quick-fill chips */}
           <div className="flex flex-wrap gap-1.5 mt-2">
@@ -222,12 +258,16 @@ export default function MapSearch() {
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
+              list="location-suggestions"
               value={location}
               onChange={e => setLocation(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && startSearch()}
               placeholder="e.g. Manhattan, New York / Gulshan, Dhaka / London, UK..."
               className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
             />
+            <datalist id="location-suggestions">
+              {LOCATION_SUGGESTIONS.map(s => <option key={s} value={s} />)}
+            </datalist>
           </div>
           {/* Popular cities quick-fill */}
           <div className="flex flex-wrap gap-1.5 mt-2">

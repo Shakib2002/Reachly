@@ -119,6 +119,7 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
   const [imgError, setImgError] = useState(false);
   const [findingEmail, setFindingEmail] = useState(false);
   const [foundEmail, setFoundEmail] = useState<string | null>(null);
+  const [emailMeta, setEmailMeta] = useState<{ source?: string; confidence?: number; verified?: boolean } | null>(null);
 
   const handleAdd = async () => {
     setSaving(true);
@@ -144,7 +145,9 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
       });
       const data = await res.json();
       if (data.contacts?.length > 0 && data.contacts[0].email) {
-        setFoundEmail(data.contacts[0].email);
+        const contact = data.contacts[0];
+        setFoundEmail(contact.email);
+        setEmailMeta({ source: contact.source, confidence: contact.confidence, verified: contact.verified });
       } else {
         setFoundEmail('not-found');
       }
@@ -272,9 +275,22 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
 
           {/* Found email */}
           {foundEmail && foundEmail !== 'not-found' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Mail className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
               <a href={`mailto:${foundEmail}`} className="text-xs text-emerald-600 font-semibold hover:text-emerald-700 truncate">{foundEmail}</a>
+              {emailMeta && (
+                <>
+                  {emailMeta.verified && (
+                    <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded text-[9px] font-bold">✓ Verified</span>
+                  )}
+                  {emailMeta.source && (
+                    <span className="px-1.5 py-0.5 bg-slate-50 text-slate-400 border border-slate-200 rounded text-[9px]">via {emailMeta.source}</span>
+                  )}
+                  {emailMeta.confidence && !emailMeta.verified && (
+                    <span className="text-[9px] text-slate-400">{emailMeta.confidence}%</span>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>

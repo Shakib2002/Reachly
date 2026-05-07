@@ -4,9 +4,14 @@ import { applyRateLimit } from '@/lib/rateLimit';
 export const dynamic = 'force-dynamic';
 
 /**
- * Multi-provider contact enrichment API
- * Queries Hunter.io, Skrapp, and Apollo APIs in waterfall pattern
- * Returns enriched contact data with email, phone, social profiles
+ * Multi-provider contact enrichment API — Waterfall pattern
+ * 
+ * Industry best practices implemented:
+ * 1. Stop condition — stops as soon as a verified email is found
+ * 2. Provider source tracking — logs which provider enriched each contact
+ * 3. Confidence scoring — each provider contributes a real confidence score
+ * 4. De-duplication — removes duplicate emails across providers
+ * 5. Fallback chain — Hunter → Skrapp → Apollo (ordered by accuracy)
  */
 
 interface EnrichedContact {
@@ -20,6 +25,7 @@ interface EnrichedContact {
   linkedin: string | null;
   phone: string | null;
   source: string;
+  verified: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -35,10 +41,14 @@ export async function POST(request: NextRequest) {
 
     const targetDomain = domain || `${company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
     const contacts: EnrichedContact[] = [];
+    const providersQueried: string[] = [];
+    const providerTimings: Record<string, number> = {};
 
-    // Provider 1: Hunter.io — Domain Search
+    // ═══ Provider 1: Hunter.io — Domain Search (highest accuracy for domain-based) ═══
     const hunterKey = process.env.HUNTER_API_KEY;
     if (hunterKey) {
+      providersQueried.push('hunter');
+      const start = Date.now();
       try {
         const params = new URLSearchParams({ domain: targetDomain, api_key: hunterKey, limit: '10' });
         if (first_name) params.set('first_name', first_name);
@@ -62,17 +72,27 @@ export async function POST(request: NextRequest) {
               linkedin: email.linkedin || null,
               phone: email.phone_number || null,
               source: 'hunter',
+              verified: email.verification?.status === 'valid',
             });
           }
         }
+        providerTimings.hunter = Date.now() - start;
       } catch { /* Hunter failed, try next */ }
+
+      // ─── STOP CONDITION: If Hunter found a high-confidence verified email, skip others ───
+      const bestHunter = contacts.find(c => c.source === 'hunter' && c.confidence >= 90);
+      if (bestHunter) {
+        console.log(`[Enrich] Hunter found high-confidence email (${bestHunter.confidence}%), skipping other providers`);
+        return buildResponse(contacts, providersQueried, providerTimings);
+      }
     }
 
-    // Provider 2: Skrapp.io — Email Finder (works with domain search)
+    // ═══ Provider 2: Skrapp.io — Email Finder ═══
     const skrappKey = process.env.SKRAPP_API_KEY;
     if (skrappKey && targetDomain) {
+      providersQueried.push('skrapp');
+      const start = Date.now();
       try {
-        // Skrapp domain search — find emails at a domain without needing person names
         const skrappUrl = first_name && last_name
           ? `https://api.skrapp.io/api/v2/find?firstName=${encodeURIComponent(first_name)}&lastName=${encodeURIComponent(last_name)}&domain=${encodeURIComponent(targetDomain)}`
           : `https://api.skrapp.io/api/v2/find?domain=${encodeURIComponent(targetDomain)}`;
@@ -94,14 +114,25 @@ export async function POST(request: NextRequest) {
             linkedin: data.linkedin || null,
             phone: null,
             source: 'skrapp',
+            verified: (data.accuracy || 0) >= 90,
           });
         }
+        providerTimings.skrapp = Date.now() - start;
       } catch { /* Skrapp failed */ }
+
+      // ─── STOP CONDITION: If Skrapp found high-accuracy email, skip Apollo ───
+      const bestSkrapp = contacts.find(c => c.source === 'skrapp' && c.confidence >= 85);
+      if (bestSkrapp) {
+        console.log(`[Enrich] Skrapp found good email (${bestSkrapp.confidence}%), skipping Apollo`);
+        return buildResponse(contacts, providersQueried, providerTimings);
+      }
     }
 
-    // Provider 3: Apollo.io — People Search
+    // ═══ Provider 3: Apollo.io — People Search (broadest database) ═══
     const apolloKey = process.env.APOLLO_API_KEY;
     if (apolloKey) {
+      providersQueried.push('apollo');
+      const start = Date.now();
       try {
         const body: Record<string, unknown> = {
           api_key: apolloKey,
@@ -135,32 +166,50 @@ export async function POST(request: NextRequest) {
                 linkedin: person.linkedin_url || null,
                 phone: person.phone_numbers?.[0]?.sanitized_number || null,
                 source: 'apollo',
+                verified: person.email_status === 'verified',
               });
             }
           }
         }
+        providerTimings.apollo = Date.now() - start;
       } catch { /* Apollo failed */ }
     }
 
-    // Sort by confidence (highest first)
-    contacts.sort((a, b) => b.confidence - a.confidence);
-
-    // De-duplicate by email
-    const unique = contacts.filter((c, i, arr) =>
-      c.email && arr.findIndex(x => x.email === c.email) === i
-    );
-
-    return NextResponse.json({
-      contacts: unique,
-      totalResults: unique.length,
-      providers_queried: [
-        hunterKey ? 'hunter' : null,
-        skrappKey ? 'skrapp' : null,
-        apolloKey ? 'apollo' : null,
-      ].filter(Boolean),
-    });
+    return buildResponse(contacts, providersQueried, providerTimings);
   } catch (error) {
     console.error('[Contact Enrichment]', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+function buildResponse(
+  contacts: EnrichedContact[],
+  providersQueried: string[],
+  providerTimings: Record<string, number>
+) {
+  // Sort: verified first, then by confidence (highest first)
+  contacts.sort((a, b) => {
+    if (a.verified !== b.verified) return a.verified ? -1 : 1;
+    return b.confidence - a.confidence;
+  });
+
+  // De-duplicate by email
+  const unique = contacts.filter((c, i, arr) =>
+    c.email && arr.findIndex(x => x.email === c.email) === i
+  );
+
+  // Log enrichment summary
+  const sources = unique.reduce((acc, c) => {
+    acc[c.source] = (acc[c.source] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log(`[Enrich] Found ${unique.length} contacts from ${Object.keys(sources).join(', ')}. Timings: ${JSON.stringify(providerTimings)}`);
+
+  return NextResponse.json({
+    contacts: unique,
+    totalResults: unique.length,
+    providers_queried: providersQueried,
+    provider_timings: providerTimings,
+    sources,
+  });
 }

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { applyRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // Allow up to 5 min for Vercel/Edge
+export const maxDuration = 300;
 
 const mapSearchSchema = z.object({
   query: z.string().min(1, 'Search query is required').max(200),
@@ -19,9 +19,11 @@ const mapSearchSchema = z.object({
 });
 
 /**
- * Map Search — SYNCHRONOUS approach.
- * Uses Apify run-sync-get-dataset-items to wait for results in a single HTTP call.
- * Client shows a loading spinner; no polling needed.
+ * Map Search — ASYNC POLLING approach.
+ * 1. Start Apify run (returns immediately with run ID)
+ * 2. Poll run status every 5 seconds until done
+ * 3. Fetch dataset items
+ * This avoids Next.js dev server timeout issues.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -43,13 +45,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Map search not configured. Add APIFY_API_TOKEN to .env.local' }, { status: 503 });
     }
 
-    // Use Apify run-sync-get-dataset-items — blocks until results are ready
-    // timeout=300 gives Apify up to 5 min to complete the scrape
-    // Crawl slightly more than requested to account for post-filter losses
     const crawlLimit = maxResults + 10;
 
-    const runRes = await fetch(
-      `https://api.apify.com/v2/acts/2Mdma1N6Fd0y3QEjR/run-sync-get-dataset-items?token=${apiToken}&timeout=300`,
+    // ═══ Step 1: Start the Apify run (returns immediately) ═══
+    const startRes = await fetch(
+      `https://api.apify.com/v2/acts/2Mdma1N6Fd0y3QEjR/runs?token=${apiToken}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,31 +66,84 @@ export async function POST(request: NextRequest) {
           scrapeReviewUrl: false,
           scrapeResponseFromOwnerText: false,
         }),
-        signal: AbortSignal.timeout(360000), // 6 min client-side timeout
       }
     );
 
-    // If timeout exceeded but run started, try to get partial results
-    if (!runRes.ok) {
-      const errText = await runRes.text().catch(() => '');
-      console.error('Apify sync error:', runRes.status, errText);
-
-      // Handle Apify timeout (400 = run timed out, 408 = HTTP timeout)
-      if (runRes.status === 400 || runRes.status === 408) {
-        return NextResponse.json({
-          mode: 'instant',
-          status: 'SUCCEEDED',
-          businesses: [],
-          total: 0,
-          message: 'Google Maps scan timed out. Try: 1) Reduce max results to 10, 2) Use a specific city name like "Manhattan, NY" instead of "New York".',
-        });
-      }
-
-      return NextResponse.json({ error: 'Map search failed. Please try again.' }, { status: 502 });
+    if (!startRes.ok) {
+      const errText = await startRes.text().catch(() => '');
+      console.error('[Map Search] Failed to start Apify run:', startRes.status, errText);
+      return NextResponse.json({ error: 'Failed to start map search. Please try again.' }, { status: 502 });
     }
 
-    // Parse results — run-sync-get-dataset-items returns array directly
-    const rawItems = await runRes.json();
+    const startData = await startRes.json();
+    const runId = startData.data?.id;
+    if (!runId) {
+      console.error('[Map Search] No run ID returned:', JSON.stringify(startData));
+      return NextResponse.json({ error: 'Map search returned invalid response.' }, { status: 502 });
+    }
+
+    console.log(`[Map Search] Run started: ${runId} for query: "${query}"`);
+
+    // ═══ Step 2: Poll for completion (max 5 minutes, every 5 seconds) ═══
+    const maxPollTime = 5 * 60 * 1000; // 5 minutes
+    const pollInterval = 5000; // 5 seconds
+    const pollStart = Date.now();
+    let runStatus = 'RUNNING';
+
+    while (Date.now() - pollStart < maxPollTime) {
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+      try {
+        const statusRes = await fetch(
+          `https://api.apify.com/v2/actor-runs/${runId}?token=${apiToken}`,
+          { signal: AbortSignal.timeout(10000) }
+        );
+        const statusData = await statusRes.json();
+        runStatus = statusData.data?.status;
+
+        console.log(`[Map Search] Poll: ${runStatus} (${Math.round((Date.now() - pollStart) / 1000)}s)`);
+
+        if (runStatus === 'SUCCEEDED' || runStatus === 'FAILED' || runStatus === 'ABORTED' || runStatus === 'TIMED-OUT') {
+          break;
+        }
+      } catch (pollErr) {
+        console.error('[Map Search] Poll error:', pollErr);
+        // Continue polling even if one poll request fails
+      }
+    }
+
+    if (runStatus !== 'SUCCEEDED') {
+      console.error(`[Map Search] Run ended with status: ${runStatus}`);
+      return NextResponse.json({
+        mode: 'instant',
+        status: 'SUCCEEDED',
+        businesses: [],
+        total: 0,
+        message: runStatus === 'TIMED-OUT'
+          ? 'Google Maps scan timed out. Try: 1) Reduce max results, 2) Use a specific city name.'
+          : `Map search ${runStatus?.toLowerCase() || 'failed'}. Please try again.`,
+      });
+    }
+
+    // ═══ Step 3: Fetch dataset items ═══
+    const datasetId = (await (await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apiToken}`)).json()).data?.defaultDatasetId;
+
+    if (!datasetId) {
+      console.error('[Map Search] No dataset ID for run:', runId);
+      return NextResponse.json({ mode: 'instant', status: 'SUCCEEDED', businesses: [], total: 0 });
+    }
+
+    const itemsRes = await fetch(
+      `https://api.apify.com/v2/datasets/${datasetId}/items?token=${apiToken}&format=json`,
+      { signal: AbortSignal.timeout(30000) }
+    );
+
+    if (!itemsRes.ok) {
+      console.error('[Map Search] Failed to fetch dataset items:', itemsRes.status);
+      return NextResponse.json({ mode: 'instant', status: 'SUCCEEDED', businesses: [], total: 0 });
+    }
+
+    const rawItems = await itemsRes.json();
 
     if (!Array.isArray(rawItems) || rawItems.length === 0) {
       return NextResponse.json({
@@ -98,10 +151,13 @@ export async function POST(request: NextRequest) {
         status: 'SUCCEEDED',
         businesses: [],
         total: 0,
+        message: 'No results found. Try a different search query or location.',
       });
     }
 
-    // Apply all filters
+    console.log(`[Map Search] Got ${rawItems.length} raw items from Apify`);
+
+    // ═══ Apply filters ═══
     const filtered = rawItems.filter((biz) => {
       const rating = biz.totalScore || 0;
       if (rating < minRating || rating > maxRating) return false;
@@ -118,7 +174,7 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
-    // Score and transform
+    // ═══ Score and transform ═══
     const businesses = filtered
       .map((biz) => ({
         id: biz.placeId || `${biz.title}-${Math.random().toString(36).slice(2)}`,
@@ -136,7 +192,6 @@ export async function POST(request: NextRequest) {
         imageUrl: biz.imageUrl || null,
         description: biz.description || null,
         openingHours: biz.openingHours || [],
-        // Social media links — Apify returns these as arrays
         socialMedia: {
           facebook: biz.facebookUrl || (Array.isArray(biz.facebooks) && biz.facebooks[0]) || null,
           instagram: biz.instagramUrl || (Array.isArray(biz.instagrams) && biz.instagrams[0]) || null,
@@ -158,19 +213,7 @@ export async function POST(request: NextRequest) {
       rawTotal: rawItems.length,
     });
   } catch (error) {
-    console.error('Map search error:', error);
-    
-    // Handle AbortError (timeout)
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return NextResponse.json({
-        mode: 'instant',
-        status: 'SUCCEEDED',
-        businesses: [],
-        total: 0,
-        message: 'Search timed out. Try reducing max results or use a more specific location.',
-      });
-    }
-
+    console.error('[Map Search] Unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -198,7 +241,6 @@ function calcLeadScore(biz: any, painKeywords: string[] = []): number {
 
   if (!biz.permanentlyClosed && !biz.temporarilyClosed) score += 5;
 
-  // Pain keyword bonus — businesses with negative reviews are easier to pitch
   if (checkPainKeywords(biz, painKeywords)) score += 10;
 
   return Math.min(score, 100);
@@ -207,7 +249,6 @@ function calcLeadScore(biz: any, painKeywords: string[] = []): number {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function checkPainKeywords(biz: any, painKeywords: string[] = []): boolean {
   if (painKeywords.length === 0) return false;
-  // Check description and any available review text
   const searchText = [
     biz.description || '',
     biz.reviewsText || '',
