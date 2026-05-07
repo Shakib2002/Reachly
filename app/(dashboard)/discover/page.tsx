@@ -127,24 +127,43 @@ export default function DiscoverPage() {
 
   const exportLeadsCSV = () => {
     if (leads.length === 0) return;
-    const headers = ['Company', 'Position', 'Department', 'Domain', 'Email', 'Location', 'Salary', 'Job Type', 'Apply Link'];
+    const headers = [
+      'First Name', 'Last Name', 'Email', 'Confidence %', 'LinkedIn',
+      'Company', 'Position', 'Department', 'Domain', 'Location',
+      'Remote', 'Job Type', 'Posted At', 'Posted Ago', 'Publisher',
+      'Salary Min', 'Salary Max', 'Salary Currency', 'Salary Period',
+      'Apply Link', 'Google Link', 'Apply Direct',
+      'Description', 'Qualifications', 'Responsibilities', 'Benefits',
+    ];
     const rows = leads.map(l => {
-      const sal = l.salary && (l.salary.min || l.salary.max)
-        ? `$${l.salary.min ? Math.round(l.salary.min/1000)+'k' : '?'}-$${l.salary.max ? Math.round(l.salary.max/1000)+'k' : '?'}`
-        : '';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sal: any = l.salary || {};
+      const jp = l.jobPosting || {} as NonNullable<typeof l.jobPosting>;
+      const highlights = jp.highlights || { qualifications: [], responsibilities: [] };
       return [
-        l.company, l.position, l.department,
-        l.domain || '', l.email || '', l.location || '',
-        sal, l.jobPosting?.type || '', l.jobPosting?.applyLink || '',
+        l.firstName || '', l.lastName || '', l.email || '', l.confidence || '',
+        l.linkedin || '',
+        l.company || '', l.position || '', l.department || '',
+        l.domain || '', l.location || '',
+        l.isRemote ? 'Yes' : 'No',
+        jp.type || '', jp.postedAt || '', jp.postedAgo || '', jp.publisher || '',
+        sal.min || '', sal.max || '', sal.currency || '', sal.period || '',
+        jp.applyLink || '', jp.googleLink || '', jp.applyDirect ? 'Yes' : 'No',
+        (jp.description || '').replace(/[\r\n]+/g, ' ').slice(0, 500),
+        (highlights.qualifications || []).join(' | '),
+        (highlights.responsibilities || []).join(' | '),
+        (jp.benefits || []).join(' | '),
       ];
     });
-    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    // BOM for Excel UTF-8 support
+    const bom = '\uFEFF';
+    const csv = bom + [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
-    a.download = `reachly-leads-${(jobTitle || jobCompany || lastJobQuery).replace(/\s+/g, '-')}-${Date.now()}.csv`;
+    a.download = `reachly-jobs-${(jobTitle || jobCompany || lastJobQuery).replace(/\s+/g, '-')}-${Date.now()}.csv`;
     a.click(); URL.revokeObjectURL(url);
-    toast.success(`Exported ${leads.length} leads to CSV`);
+    toast.success(`Exported ${leads.length} leads with all data to CSV`);
   };
 
   const saveLeadToCRM = async (lead: LeadResult) => {

@@ -149,19 +149,49 @@ export default function MapSearch() {
   };
 
   const exportCSV = () => {
-    const headers = ['Name', 'Category', 'Rating', 'Reviews', 'Phone', 'Website', 'Address', 'City', 'Lead Score', 'Maps URL'];
-    const rows = displayBiz.map(b => [
-      b.name, b.category, b.rating, b.reviewsCount,
-      b.phone || '', b.website || '', b.address, b.city,
-      b.leadScore, b.mapsUrl,
-    ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    if (displayBiz.length === 0) return;
+    const headers = [
+      'Business Name', 'Category', 'Rating', 'Reviews', 'Lead Score',
+      'Phone', 'Website', 'Address', 'City',
+      'Email (Found)', 'Description',
+      'Facebook', 'Instagram', 'Twitter', 'LinkedIn',
+      'Opening Hours', 'Is Open', 'Has Pain Keywords',
+      'No Website', 'Photos Count', 'Google Maps URL', 'Image URL',
+    ];
+    const rows = displayBiz.map(b => {
+      // Format opening hours — handle both string and object format
+      const hours = (b.openingHours || []).map((h: unknown) => {
+        if (typeof h === 'string') return h;
+        if (h && typeof h === 'object' && 'day' in h && 'hours' in h) {
+          return `${(h as {day: string}).day}: ${(h as {hours: string}).hours}`;
+        }
+        return '';
+      }).filter(Boolean).join(' | ');
+
+      return [
+        b.name || '', b.category || '', b.rating || '', b.reviewsCount || '', b.leadScore || '',
+        b.phone || '', b.website || '', b.address || '', b.city || '',
+        '', // email placeholder — user finds via Find Email button
+        (b.description || '').replace(/[\r\n]+/g, ' ').slice(0, 300),
+        b.socialMedia?.facebook || '', b.socialMedia?.instagram || '',
+        b.socialMedia?.twitter || '', b.socialMedia?.linkedin || '',
+        hours,
+        b.isOpen ? 'Yes' : 'No',
+        b.hasPainKeywords ? 'Yes' : 'No',
+        b.websiteMissing ? 'Yes' : 'No',
+        b.imagesCount || 0,
+        b.mapsUrl || '', b.imageUrl || '',
+      ];
+    });
+    // BOM for Excel UTF-8 support
+    const bom = '\uFEFF';
+    const csv = bom + [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
     a.download = `reachly-leads-${(lastQuery || searchQuery).replace(/\s+/g, '-')}-${Date.now()}.csv`;
     a.click(); URL.revokeObjectURL(url);
-    toast.success(`Exported ${displayBiz.length} leads to CSV`);
+    toast.success(`Exported ${displayBiz.length} leads with all data to CSV`);
   };
 
   const displayBiz = businesses.filter(b => {
