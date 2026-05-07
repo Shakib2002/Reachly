@@ -23,7 +23,8 @@ export interface MapBusiness {
   mapsUrl: string;
   imageUrl: string | null;
   description: string | null;
-  openingHours?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  openingHours?: any[];
   socialMedia?: {
     facebook: string | null;
     instagram: string | null;
@@ -239,7 +240,13 @@ export default function MapCard({ business: biz, onAddToCRM, isSaved }: MapCardP
           {biz.openingHours && biz.openingHours.length > 0 && (
             <div className="flex items-start gap-2">
               <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
-              <span className="text-[11px] text-slate-400 line-clamp-1">{biz.openingHours[0]}</span>
+              <span className="text-[11px] text-slate-400 line-clamp-1">
+                {typeof biz.openingHours[0] === 'string'
+                  ? biz.openingHours[0]
+                  : biz.openingHours[0]?.day && biz.openingHours[0]?.hours
+                    ? `${biz.openingHours[0].day}: ${biz.openingHours[0].hours}`
+                    : JSON.stringify(biz.openingHours[0])}
+              </span>
             </div>
           )}
 
