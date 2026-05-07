@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useClientStore } from '@/lib/clientStore';
+import { useMapSearchStore } from '@/lib/mapSearchStore';
 import MapCard, { type MapBusiness } from './MapCard';
 import toast from 'react-hot-toast';
 import {
@@ -64,8 +65,9 @@ const PAIN_KEYWORDS = ['slow', 'bad service', 'late response', 'not professional
 
 export default function MapSearch() {
   const { addClient } = useClientStore();
+  const { businesses, loading, progress, error, searched, lastQuery, startSearch: globalStartSearch } = useMapSearchStore();
 
-  // Form state
+  // Form state (local — only form inputs)
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [maxResults, setMaxResults] = useState(30);
@@ -79,16 +81,10 @@ export default function MapSearch() {
   const [selectedPainKw, setSelectedPainKw] = useState<string[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Results state
-  const [businesses, setBusinesses] = useState<MapBusiness[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState('');
-  const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false);
+  // Local-only UI state
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [campaignFilter, setCampaignFilter] = useState<'all' | 'none' | 'has'>('all');
   const [bulkSaving, setBulkSaving] = useState(false);
-
 
   const searchQuery = keyword && location ? `${keyword} in ${location}` : (keyword || location);
 
@@ -100,55 +96,16 @@ export default function MapSearch() {
 
   const startSearch = useCallback(async () => {
     if (!searchQuery.trim()) { toast.error('Enter a business type and location'); return; }
-    setLoading(true); setError(''); setSearched(true); setBusinesses([]);
-    setProgress('Scanning Google Maps... please wait (2-5 minutes)');
-
-    // Show elapsed time while waiting
-    const startTime = Date.now();
-    const timerRef = setInterval(() => {
-      const elapsed = Math.round((Date.now() - startTime) / 1000);
-      const dots = '.'.repeat((Math.floor(elapsed / 2) % 3) + 1);
-      setProgress(`Scanning Google Maps${dots} (${elapsed}s elapsed)`);
-    }, 1000);
-
-    try {
-      const res = await fetch('/api/map-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: searchQuery,
-          maxResults,
-          minRating, maxRating,
-          minReviews, maxReviews,
-          websiteFilter, requirePhone, onlyOpen,
-          painKeywords: selectedPainKw,
-        }),
-      });
-
-      clearInterval(timerRef);
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to search');
-      }
-
-      const data = await res.json();
-      setBusinesses(data.businesses || []);
-      setProgress('');
-
-      if (data.businesses?.length > 0) {
-        toast.success(`Found ${data.businesses.length} qualified leads!`);
-      } else {
-        toast(data.message || 'No leads matched your filters. Try adjusting rating/review ranges.');
-      }
-
-    } catch (err) {
-      clearInterval(timerRef);
-      setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen, selectedPainKw]);
+    toast('Lead search started! You can navigate away — it will continue in the background.', { icon: '🔍', duration: 4000 });
+    globalStartSearch({
+      query: searchQuery,
+      maxResults,
+      minRating, maxRating,
+      minReviews, maxReviews,
+      websiteFilter, requirePhone, onlyOpen,
+      painKeywords: selectedPainKw,
+    });
+  }, [searchQuery, maxResults, minRating, maxRating, minReviews, maxReviews, websiteFilter, requirePhone, onlyOpen, selectedPainKw, globalStartSearch]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const addToCRM = async (biz: MapBusiness & { enrichedEmail?: string }) => {
@@ -202,7 +159,7 @@ export default function MapSearch() {
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
-    a.download = `reachly-leads-${searchQuery.replace(/\s+/g, '-')}-${Date.now()}.csv`;
+    a.download = `reachly-leads-${(lastQuery || searchQuery).replace(/\s+/g, '-')}-${Date.now()}.csv`;
     a.click(); URL.revokeObjectURL(url);
     toast.success(`Exported ${displayBiz.length} leads to CSV`);
   };
@@ -407,7 +364,7 @@ export default function MapSearch() {
             <div>
               <p className="text-sm font-semibold text-slate-700">
                 <span className="text-blue-600">{displayBiz.length}</span> qualified leads
-                <span className="text-slate-400 font-normal"> from &quot;{searchQuery}&quot;</span>
+                <span className="text-slate-400 font-normal"> from &quot;{lastQuery || searchQuery}&quot;</span>
               </p>
               <p className="text-xs text-slate-400 mt-0.5">Sorted by Lead Score · Highest first</p>
             </div>

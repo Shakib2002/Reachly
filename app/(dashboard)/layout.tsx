@@ -1,12 +1,55 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader2, CheckCircle } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
+import Link from 'next/link';
 import Sidebar from '@/components/dashboard/Sidebar';
 import Header from '@/components/dashboard/Header';
 import AddLeadModal from '@/components/dashboard/AddLeadModal';
 import AddClientModalGlobal from '@/components/dashboard/AddClientModalGlobal';
+import { useMapSearchStore } from '@/lib/mapSearchStore';
+
+function SearchStatusBanner() {
+  const { loading, progress, lastQuery, businesses, searched } = useMapSearchStore();
+  
+  // Show banner when search is running OR just completed (with results)
+  if (!loading && !(searched && businesses.length > 0)) return null;
+  
+  // Don't show completion banner on the discover page itself
+  if (typeof window !== 'undefined' && window.location.pathname === '/discover') return null;
+
+  return (
+    <Link href="/discover" className="block">
+      <div className={`mx-4 mt-2 px-4 py-2.5 rounded-xl border flex items-center gap-3 transition-all cursor-pointer hover:shadow-md ${
+        loading 
+          ? 'bg-blue-50 border-blue-200 animate-pulse' 
+          : 'bg-emerald-50 border-emerald-200'
+      }`}>
+        {loading ? (
+          <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />
+        ) : (
+          <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-slate-700 truncate">
+            {loading ? (
+              <>Lead Search: &quot;{lastQuery}&quot;</>
+            ) : (
+              <>✅ Found {businesses.length} leads for &quot;{lastQuery}&quot;</>
+            )}
+          </p>
+          {loading && progress && (
+            <p className="text-[10px] text-blue-500 truncate">{progress}</p>
+          )}
+        </div>
+        <span className="text-[10px] text-slate-400 flex-shrink-0">
+          {loading ? 'Processing...' : 'Click to view →'}
+        </span>
+      </div>
+    </Link>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -69,6 +112,9 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header onMobileMenuToggle={() => setMobileOpen(true)} />
+
+        {/* Global search status banner — shows on all pages when search is running */}
+        <SearchStatusBanner />
 
         {/* Page content */}
         <main className="flex-1 p-4 lg:p-6 overflow-y-auto relative z-10">
