@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useLeadStore } from '@/lib/store';
+import { useJobSearchStore } from '@/lib/jobSearchStore';
 import LeadCard, { LeadCardSkeleton, type LeadResult } from '@/components/discover/LeadCard';
 import MapSearch from '@/components/discover/MapSearch';
 import { SearchErrorBoundary } from '@/components/discover/SearchErrorBoundary';
@@ -52,9 +53,10 @@ interface SearchHistoryEntry {
 
 export default function DiscoverPage() {
   const { addLead } = useLeadStore();
+  const { leads, loading: leadsLoading, error: leadsError, searched: leadsSearched, lastQuery: lastJobQuery, startSearch: globalJobSearch, updateLead: updateJobLead } = useJobSearchStore();
   const [tab, setTab] = useState<Tab>('jobs');
 
-  // Job Search state (merged: old Jobs + old Leads)
+  // Job Search form state (local)
   const [jobTitle, setJobTitle] = useState('');
   const [jobCompany, setJobCompany] = useState('');
   const [jobLocation, setJobLocation] = useState('');
@@ -63,10 +65,6 @@ export default function DiscoverPage() {
   const [maxResults, setMaxResults] = useState(50);
   const [leadSeniority, setLeadSeniority] = useState('');
   const [leadIndustry, setLeadIndustry] = useState('');
-  const [leads, setLeads] = useState<LeadResult[]>([]);
-  const [leadsLoading, setLeadsLoading] = useState(false);
-  const [leadsError, setLeadsError] = useState('');
-  const [leadsSearched, setLeadsSearched] = useState(false);
   const [savedLeadIds, setSavedLeadIds] = useState<Set<string>>(new Set());
   const [visibleLeadCount, setVisibleLeadCount] = useState(10);
 
@@ -109,41 +107,23 @@ export default function DiscoverPage() {
     });
   }, [jobCompany, jobLocation, jobType]);
 
-  // ─── Unified Job Search (calls /api/leads/search with enhanced params) ───
+  // ─── Unified Job Search (delegates to global store) ───
   const searchLeads = useCallback(async () => {
     if (!jobTitle.trim() && !jobCompany.trim()) { toast.error('Enter a job title or company name'); return; }
-    setLeadsLoading(true); setLeadsError(''); setLeadsSearched(true); setVisibleLeadCount(10);
-    try {
-      // Build enhanced query with seniority
-      let enhancedTitle = jobTitle;
-      if (leadSeniority && !jobTitle.toLowerCase().includes(leadSeniority.toLowerCase())) {
-        enhancedTitle = leadSeniority === 'C-Suite' ? `CEO ${jobTitle}`.trim() : `${leadSeniority} ${jobTitle}`.trim();
-      }
-      // Append industry to company query for better targeting
-      let enhancedCompany = jobCompany;
-      if (leadIndustry && !jobCompany.toLowerCase().includes(leadIndustry.toLowerCase())) {
-        enhancedCompany = jobCompany ? `${jobCompany} ${leadIndustry}` : leadIndustry;
-      }
-      const res = await fetch('/api/leads/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company: enhancedCompany,
-          title: enhancedTitle,
-          location: jobLocation,
-          jobType: jobType !== 'all' ? jobType : undefined,
-          datePosted: datePosted !== 'all' ? datePosted : undefined,
-          maxResults,
-        }),
-      });
-      if (!res.ok) throw new Error('Failed to search');
-      const data = await res.json();
-      setLeads(data.leads || []);
-      addToHistory(jobTitle || jobCompany, data.leads?.length || 0, 'job');
-    } catch (err) {
-      setLeadsError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally { setLeadsLoading(false); }
-  }, [jobTitle, jobCompany, jobLocation, jobType, datePosted, maxResults, leadSeniority, leadIndustry, addToHistory]);
+    setVisibleLeadCount(10);
+    toast('Job search started! You can navigate away — it will continue in the background.', { icon: '🔍', duration: 4000 });
+    globalJobSearch({
+      title: jobTitle,
+      company: jobCompany,
+      location: jobLocation,
+      jobType: jobType !== 'all' ? jobType : undefined,
+      datePosted: datePosted !== 'all' ? datePosted : undefined,
+      maxResults,
+      seniority: leadSeniority,
+      industry: leadIndustry,
+    });
+    addToHistory(jobTitle || jobCompany, 0, 'job');
+  }, [jobTitle, jobCompany, jobLocation, jobType, datePosted, maxResults, leadSeniority, leadIndustry, addToHistory, globalJobSearch]);
 
   const exportLeadsCSV = () => {
     if (leads.length === 0) return;
@@ -162,7 +142,7 @@ export default function DiscoverPage() {
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
-    a.download = `reachly-leads-${(jobTitle || jobCompany).replace(/\s+/g, '-')}-${Date.now()}.csv`;
+    a.download = `reachly-leads-${(jobTitle || jobCompany || lastJobQuery).replace(/\s+/g, '-')}-${Date.now()}.csv`;
     a.click(); URL.revokeObjectURL(url);
     toast.success(`Exported ${leads.length} leads to CSV`);
   };
@@ -298,7 +278,7 @@ export default function DiscoverPage() {
         });
         const data = await res.json();
         if (data.contacts?.length > 0 && data.contacts[0].email) {
-          setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, email: data.contacts[0].email, confidence: data.contacts[0].confidence || 0 } : l));
+          updateJobLead(lead.id, { email: data.contacts[0].email, confidence: data.contacts[0].confidence || 0 });
           enriched++;
         }
       } catch { /* continue */ }
